@@ -1,0 +1,204 @@
+/**
+ * heuristic-evaluation
+ * Jorge Andrés Ramírez Sierra, Ingeniero de Software - Máster en Diseño de Experiencia de Usuario
+ */
+
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input, Label, Select } from "@/components/ui/input";
+import { PROJECT_STATUS_LABELS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+
+type ProjectItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  status: keyof typeof PROJECT_STATUS_LABELS;
+  updatedAtLabel: string;
+  heuristicSet: { name: string };
+  _count: { evaluators: number; findings: number };
+};
+
+type ConfigItem = { id: string; name: string; heuristicSetId: string };
+
+export function ProjectsDashboard({
+  initialProjects,
+  configs,
+}: {
+  initialProjects: ProjectItem[];
+  configs: ConfigItem[];
+}) {
+  const router = useRouter();
+  const [projects, setProjects] = useState(initialProjects);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    productName: "",
+    prototypeUrl: "",
+    evaluationConfigId: configs[0]?.id ?? "",
+    heuristicSetId: configs[0]?.heuristicSetId ?? "",
+  });
+
+  async function createProject() {
+    setLoading(true);
+    const response = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    setLoading(false);
+    if (!response.ok) return;
+    const project = await response.json();
+    router.push(`/projects/${project.id}`);
+  }
+
+  async function deleteProject(id: string) {
+    if (!confirm("¿Eliminar este proyecto y todos sus hallazgos?")) return;
+    await fetch(`/api/projects/${id}`, { method: "DELETE" });
+    setProjects((current) => current.filter((p) => p.id !== id));
+  }
+
+  async function cloneProject(id: string) {
+    const response = await fetch(`/api/projects/${id}/clone`, { method: "POST" });
+    if (!response.ok) return;
+    router.refresh();
+  }
+
+  async function exportProject(id: string, name: string) {
+    const response = await fetch(`/api/projects/${id}/export`);
+    const payload = await response.json();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${name.replace(/\s+/g, "-")}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">Panel principal</p>
+          <h1 className="font-display mt-2 text-3xl font-semibold text-foreground">Proyectos de evaluación</h1>
+          <p className="mt-2 text-muted-foreground">
+            Crea proyectos, asigna evaluadores y consolida hallazgos heurísticos de forma local.
+          </p>
+        </div>
+        <Button onClick={() => setShowForm((value) => !value)}>
+          {showForm ? "Cancelar" : "Nuevo proyecto"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card className="border-border/80 shadow-sm">
+          <CardHeader>
+            <CardTitle>Crear proyecto</CardTitle>
+            <CardDescription>Define el producto a evaluar y la configuración heurística.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre del proyecto</Label>
+              <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="productName">Producto / sistema</Label>
+              <Input
+                id="productName"
+                value={form.productName}
+                onChange={(e) => setForm({ ...form, productName: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="description">Descripción</Label>
+              <Input
+                id="description"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="prototypeUrl">URL del prototipo o sistema evaluado</Label>
+              <Input
+                id="prototypeUrl"
+                type="url"
+                placeholder="https://..."
+                value={form.prototypeUrl}
+                onChange={(e) => setForm({ ...form, prototypeUrl: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="config">Configuración de evaluación</Label>
+              <Select
+                id="config"
+                value={form.evaluationConfigId}
+                onChange={(e) => {
+                  const config = configs.find((item) => item.id === e.target.value);
+                  setForm({
+                    ...form,
+                    evaluationConfigId: e.target.value,
+                    heuristicSetId: config?.heuristicSetId ?? form.heuristicSetId,
+                  });
+                }}
+              >
+                {configs.map((config) => (
+                  <option key={config.id} value={config.id}>
+                    {config.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="md:col-span-2">
+              <Button disabled={loading || !form.name || !form.evaluationConfigId} onClick={createProject}>
+                Crear proyecto
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {projects.map((project) => (
+          <Card key={project.id} className="border-border/80 shadow-sm">
+            <CardHeader>
+              <CardTitle>{project.name}</CardTitle>
+              <CardDescription>{project.heuristicSet.name}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <p>Estado: {PROJECT_STATUS_LABELS[project.status]}</p>
+                <p>{project._count.evaluators} evaluadores · {project._count.findings} hallazgos</p>
+                <p>Actualizado: {project.updatedAtLabel}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={`/projects/${project.id}`}
+                  className={cn(buttonVariants({ size: "default" }))}
+                >
+                  Abrir
+                </Link>
+                <Button variant="outline" onClick={() => cloneProject(project.id)}>
+                  Duplicar
+                </Button>
+                <Button variant="outline" onClick={() => exportProject(project.id, project.name)}>
+                  Exportar
+                </Button>
+                <Button variant="destructive" onClick={() => deleteProject(project.id)}>
+                  Eliminar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,190 @@
+/**
+ * heuristic-evaluation
+ * Jorge Andrés Ramírez Sierra, Ingeniero de Software - Máster en Diseño de Experiencia de Usuario
+ */
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum HeuristicSetSource {
+  NIELSEN
+  SHNEIDERMAN
+  INSTONE
+  MAYHEW
+  MATERIAL_DESIGN
+  APPLE_HIG
+  CUSTOM
+}
+
+enum ProjectStatus {
+  DRAFT
+  IN_EVALUATION
+  CONSOLIDATION
+  CLOSED
+}
+
+enum Severity {
+  CRITICAL
+  MAJOR
+  MINOR
+}
+
+enum Scope {
+  ISOLATED
+  GENERALIZED
+}
+
+enum EvidenceType {
+  IMAGE
+  VIDEO
+}
+
+model HeuristicSet {
+  id                String               @id @default(cuid())
+  name              String
+  description       String?
+  source            HeuristicSetSource   @default(CUSTOM)
+  isSystem          Boolean              @default(false)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  principles        HeuristicPrinciple[]
+  evaluationConfigs EvaluationConfig[]
+  projects          Project[]
+}
+
+model HeuristicPrinciple {
+  id                   String                @id @default(cuid())
+  setId                String
+  set                  HeuristicSet          @relation(fields: [setId], references: [id], onDelete: Cascade)
+  orderIndex           Int
+  title                String
+  description          String
+  goodExampleHtml      String?
+  badExampleHtml       String?
+  goodExampleImagePath String?
+  badExampleImagePath  String?
+  findingLinks         FindingPrinciple[]
+  consolidatedFindings ConsolidatedFinding[]
+
+  @@index([setId, orderIndex])
+}
+
+model EvaluationConfig {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  heuristicSetId String
+  heuristicSet   HeuristicSet @relation(fields: [heuristicSetId], references: [id])
+  isDefault      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  projects       Project[]
+}
+
+model Project {
+  id                   String                @id @default(cuid())
+  name                 String
+  description          String?
+  productName          String?
+  prototypeUrl         String?
+  status               ProjectStatus         @default(DRAFT)
+  evaluationConfigId   String
+  evaluationConfig     EvaluationConfig      @relation(fields: [evaluationConfigId], references: [id])
+  heuristicSetId       String
+  heuristicSet         HeuristicSet          @relation(fields: [heuristicSetId], references: [id])
+  evaluators           Evaluator[]
+  findings             Finding[]
+  consolidatedFindings ConsolidatedFinding[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+}
+
+model Evaluator {
+  id         String    @id @default(cuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name       String
+  role       String?
+  notes      String?
+  orderIndex Int       @default(0)
+  findings   Finding[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([projectId, orderIndex])
+}
+
+model Finding {
+  id                    String               @id @default(cuid())
+  projectId             String
+  project               Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evaluatorId           String
+  evaluator             Evaluator            @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+  screen                String
+  task                  String
+  step                  String
+  descriptionHtml       String
+  severity              Severity
+  scope                 Scope
+  solutionHtml          String?
+  riskAssessment        String?
+  consolidatedFindingId String?
+  consolidatedFinding   ConsolidatedFinding? @relation(fields: [consolidatedFindingId], references: [id])
+  principles            FindingPrinciple[]
+  evidence              FindingEvidence[]
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([projectId, evaluatorId])
+  @@index([consolidatedFindingId])
+}
+
+model FindingPrinciple {
+  findingId   String
+  principleId String
+  orderIndex  Int                @default(0)
+  finding     Finding            @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  principle   HeuristicPrinciple @relation(fields: [principleId], references: [id])
+
+  @@id([findingId, principleId])
+  @@index([principleId])
+}
+
+model FindingEvidence {
+  id          String       @id @default(cuid())
+  findingId   String
+  finding     Finding      @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  type        EvidenceType
+  fileName    String
+  mimeType    String
+  fileSize    Int
+  storagePath String
+  createdAt   DateTime     @default(now())
+}
+
+model ConsolidatedFinding {
+  id               String             @id @default(cuid())
+  projectId        String
+  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  principleId      String
+  principle        HeuristicPrinciple @relation(fields: [principleId], references: [id])
+  title            String
+  summaryHtml      String
+  finalSeverity    Severity
+  finalScope       Scope
+  solutionHtml     String?
+  riskAssessment   String?
+  orderIndex       Int                @default(0)
+  findings         Finding[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([projectId, orderIndex])
+}
