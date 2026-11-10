@@ -23,9 +23,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Evaluación Heurística",
+  title: "Evaluación de usabilidad",
   description:
-    "Herramienta local para planificar, ejecutar y consolidar evaluaciones heurísticas de usabilidad.",
+    "Herramienta local para planificar, ejecutar y documentar evaluaciones heurísticas y tests de usabilidad con usuarios.",
 };
 
 export default function RootLayout({

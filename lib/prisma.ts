@@ -6,7 +6,7 @@
 import { PrismaClient } from "@/lib/generated/prisma";
 
 /** Increment when Prisma schema changes require a fresh client in dev. */
-const PRISMA_SCHEMA_REVISION = 2;
+const PRISMA_SCHEMA_REVISION = 3;
 
 type GlobalPrisma = {
   prisma?: PrismaClient;

@@ -33,6 +33,8 @@ export const evaluationConfigSchema = z.object({
   heuristicSetId: z.string().min(1, "Selecciona un set de heurísticas"),
 });
 
+export const projectKindSchema = z.enum(["HEURISTIC_EVALUATION", "USABILITY_TEST"]);
+
 export const projectSchema = z.object({
   name: z.string().min(1, "El nombre del proyecto es obligatorio"),
   description: z.string().optional(),
@@ -41,6 +43,7 @@ export const projectSchema = z.object({
   evaluationConfigId: z.string().min(1),
   heuristicSetId: z.string().min(1),
   status: projectStatusSchema.optional(),
+  kind: projectKindSchema.optional(),
 });
 
 export const evaluatorSchema = z.object({

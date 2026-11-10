@@ -68,6 +68,17 @@ export async function exportProject(projectId: string) {
         },
         orderBy: { orderIndex: "asc" },
       },
+      // Test de usabilidad: plan, escenarios, participantes con sus ejecuciones y problemas (reproducibilidad).
+      testPlan: true,
+      scenarios: { orderBy: { orderIndex: "asc" } },
+      participants: {
+        orderBy: { orderIndex: "asc" },
+        include: { session: { include: { runs: true } } },
+      },
+      issues: {
+        orderBy: { orderIndex: "asc" },
+        include: { principles: { include: { principle: { select: { title: true } } } }, evidence: true },
+      },
     },
   });
 

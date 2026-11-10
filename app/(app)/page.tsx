@@ -12,7 +12,9 @@ export default async function HomePage() {
     prisma.project.findMany({
       include: {
         heuristicSet: { select: { name: true } },
-        _count: { select: { evaluators: true, findings: true } },
+        _count: {
+          select: { evaluators: true, findings: true, participants: true, scenarios: true, issues: true },
+        },
       },
       orderBy: { updatedAt: "desc" },
     }),

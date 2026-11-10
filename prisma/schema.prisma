@@ -46,6 +46,41 @@ enum EvidenceType {
   VIDEO
 }
 
+/// Técnica del proyecto: evaluación heurística (expertos) o test de usabilidad (usuarios).
+enum ProjectKind {
+  HEURISTIC_EVALUATION
+  USABILITY_TEST
+}
+
+enum TestEnvironment {
+  PHYSICAL
+  VIRTUAL
+}
+
+/// Resultado de un escenario para un participante. Si no se completa, es un error crítico.
+enum TaskOutcome {
+  COMPLETED
+  NOT_COMPLETED
+}
+
+enum IssueErrorType {
+  CRITICAL
+  NON_CRITICAL
+}
+
+/// Escala corta de gravedad definida en el plan de la prueba (Máster, ICU Tema 3): muy leve, leve, grave.
+enum IssueSeverity {
+  VERY_MILD
+  MILD
+  SEVERE
+}
+
+enum Level {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model HeuristicSet {
   id                String               @id @default(cuid())
   name              String
@@ -72,6 +107,7 @@ model HeuristicPrinciple {
   badExampleImagePath  String?
   findingLinks         FindingPrinciple[]
   consolidatedFindings ConsolidatedFinding[]
+  issueLinks           IssuePrinciple[]
 
   @@index([setId, orderIndex])
 }
@@ -95,6 +131,7 @@ model Project {
   productName          String?
   prototypeUrl         String?
   status               ProjectStatus         @default(DRAFT)
+  kind                 ProjectKind           @default(HEURISTIC_EVALUATION)
   evaluationConfigId   String
   evaluationConfig     EvaluationConfig      @relation(fields: [evaluationConfigId], references: [id])
   heuristicSetId       String
@@ -102,21 +139,26 @@ model Project {
   evaluators           Evaluator[]
   findings             Finding[]
   consolidatedFindings ConsolidatedFinding[]
+  testPlan             TestPlan?
+  scenarios            TestScenario[]
+  participants         Participant[]
+  issues               UsabilityIssue[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
 }
 
 model Evaluator {
-  id         String    @id @default(cuid())
+  id         String        @id @default(cuid())
   projectId  String
-  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name       String
   role       String?
   notes      String?
-  orderIndex Int       @default(0)
+  orderIndex Int           @default(0)
   findings   Finding[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  sessions   TestSession[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
   @@index([projectId, orderIndex])
 }
@@ -170,21 +212,215 @@ model FindingEvidence {
 }
 
 model ConsolidatedFinding {
-  id               String             @id @default(cuid())
-  projectId        String
-  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  principleId      String
-  principle        HeuristicPrinciple @relation(fields: [principleId], references: [id])
-  title            String
-  summaryHtml      String
-  finalSeverity    Severity
-  finalScope       Scope
-  solutionHtml     String?
-  riskAssessment   String?
-  orderIndex       Int                @default(0)
-  findings         Finding[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id             String             @id @default(cuid())
+  projectId      String
+  project        Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  principleId    String
+  principle      HeuristicPrinciple @relation(fields: [principleId], references: [id])
+  title          String
+  summaryHtml    String
+  finalSeverity  Severity
+  finalScope     Scope
+  solutionHtml   String?
+  riskAssessment String?
+  orderIndex     Int                @default(0)
+  findings       Finding[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@index([projectId, orderIndex])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Test de usabilidad (con usuarios). Estructura del documento-guía según el Máster
+// (Investigación centrada en el usuario, Tema 1.7 y Tema 3): identificación, presentación,
+// resumen ejecutivo, metodología, aspectos éticos y legales, y anexos (tarjetas-escenario).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Plan de la prueba (1:1 con el proyecto). Cada campo responde a un apartado del documento-guía.
+model TestPlan {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // 1. Identificación
+  responsibles    String?
+  contact         String?
+  location        String?
+  plannedDates    String?
+  version         String?
+  confidentiality String?
+  keywords        String?
+
+  // 2. Presentación
+  applicationSummary String?
+  userTypes          String?
+  projectMoment      String?
+  purpose            String?
+  context            String?
+
+  // 3. Resumen ejecutivo
+  executiveSummary String?
+
+  // 4. Metodología
+  plannedParticipants     Int             @default(5)
+  profiles                String?
+  eligibilityCriteria     String?
+  recruitmentProcedure    String?
+  incentive               String?
+  environment             TestEnvironment @default(PHYSICAL)
+  technicalMeans          String?
+  recordingSystems        String?
+  teamRoles               String?
+  totalDurationMinutes    Int             @default(45)
+  severityCriteria        String?
+  satisfactionScale       String?
+  participantInstructions String?
+  dataToCollect           String?
+
+  // 5. Aspectos éticos y legales
+  consentText     String?
+  legalReviewDone Boolean @default(false)
+  imageRights     String?
+  dataProtection  String?
+  dataRetention   String?
+  ethicsCode      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Escenario de uso de la prueba. En la documentación interna se llama «tarea»; al participante se le
+/// presenta solo la tarjeta-escenario (narrativa, sin pasos ni nombres de menús).
+model TestScenario {
+  id                  String    @id @default(cuid())
+  projectId           String
+  project             Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  orderIndex          Int       @default(0)
+  code                String
+  title               String
+  userGoal            String
+  description         String?
+  startingPoint       String
+  timeLimitMinutes    Int
+  completionMilestone String
+  scenarioCard        String
+  runs                TaskRun[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([projectId, orderIndex])
+}
+
+model Participant {
+  id                   String       @id @default(cuid())
+  projectId            String
+  project              Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  orderIndex           Int          @default(0)
+  code                 String
+  profile              String?
+  eligibilityConfirmed Boolean      @default(false)
+  isPilot              Boolean      @default(false)
+  isReserve            Boolean      @default(false)
+  consentSigned        Boolean      @default(false)
+  recordingAuthorized  Boolean      @default(false)
+  notes                String?
+  session              TestSession?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([projectId, orderIndex])
+}
+
+model TestSession {
+  id                  String      @id @default(cuid())
+  participantId       String      @unique
+  participant         Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  facilitatorId       String?
+  facilitator         Evaluator?  @relation(fields: [facilitatorId], references: [id], onDelete: SetNull)
+  sessionDate         DateTime?
+  notes               String?
+  /// Preguntas que el facilitador hace al final para entender una conducta (no se hacen durante la prueba).
+  finalQuestionsNotes String?
+  runs                TaskRun[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+}
+
+/// Lo ocurrido en un escenario concreto: éxito, tiempo (ToT), errores, pensamientos en voz alta y satisfacción.
+model TaskRun {
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           TestSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scenarioId        String
+  scenario          TestScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  outcome           TaskOutcome?
+  /// El participante dijo «ya está» sin haberlo logrado: error crítico (falta de feedback del sistema).
+  falseCompletion   Boolean      @default(false)
+  /// El facilitador detuvo el escenario al cumplirse el tiempo límite.
+  stoppedAtLimit    Boolean      @default(false)
+  timeOnTaskSeconds Int?
+  nonCriticalErrors Int          @default(0)
+  observationsHtml  String?
+  /// Satisfacción subjetiva de 1 a 10, pedida con la escala explicada. Se trata de forma cualitativa.
+  satisfaction      Int?
+  issueLinks        IssueRun[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([sessionId, scenarioId])
+}
+
+model UsabilityIssue {
+  id                 String           @id @default(cuid())
+  projectId          String
+  project            Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  orderIndex         Int              @default(0)
+  title              String
+  descriptionHtml    String
+  errorType          IssueErrorType
+  impact             Level
+  frequency          Level
+  persistence        Level
+  severity           IssueSeverity
+  recommendationHtml String?
+  principles         IssuePrinciple[]
+  runs               IssueRun[]
+  evidence           IssueEvidence[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([projectId, orderIndex])
+}
+
+model IssuePrinciple {
+  issueId     String
+  principleId String
+  issue       UsabilityIssue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  principle   HeuristicPrinciple @relation(fields: [principleId], references: [id])
+
+  @@id([issueId, principleId])
+  @@index([principleId])
+}
+
+model IssueRun {
+  issueId String
+  runId   String
+  issue   UsabilityIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  run     TaskRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@id([issueId, runId])
+  @@index([runId])
+}
+
+model IssueEvidence {
+  id          String         @id @default(cuid())
+  issueId     String
+  issue       UsabilityIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  type        EvidenceType
+  fileName    String
+  mimeType    String
+  fileSize    Int
+  storagePath String
+  createdAt   DateTime       @default(now())
 }

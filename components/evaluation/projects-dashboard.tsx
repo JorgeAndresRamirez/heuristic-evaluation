@@ -11,7 +11,8 @@ import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
-import { PROJECT_STATUS_LABELS } from "@/lib/constants";
+import { Badge } from "@/components/ui/badge";
+import { PROJECT_KIND_LABELS, PROJECT_STATUS_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type ProjectItem = {
@@ -19,9 +20,10 @@ type ProjectItem = {
   name: string;
   description: string | null;
   status: keyof typeof PROJECT_STATUS_LABELS;
+  kind: keyof typeof PROJECT_KIND_LABELS;
   updatedAtLabel: string;
   heuristicSet: { name: string };
-  _count: { evaluators: number; findings: number };
+  _count: { evaluators: number; findings: number; participants: number; scenarios: number; issues: number };
 };
 
 type ConfigItem = { id: string; name: string; heuristicSetId: string };
@@ -37,13 +39,22 @@ export function ProjectsDashboard({
   const [projects, setProjects] = useState(initialProjects);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string;
+    description: string;
+    productName: string;
+    prototypeUrl: string;
+    evaluationConfigId: string;
+    heuristicSetId: string;
+    kind: keyof typeof PROJECT_KIND_LABELS;
+  }>({
     name: "",
     description: "",
     productName: "",
     prototypeUrl: "",
     evaluationConfigId: configs[0]?.id ?? "",
     heuristicSetId: configs[0]?.heuristicSetId ?? "",
+    kind: "HEURISTIC_EVALUATION",
   });
 
   async function createProject() {
@@ -90,7 +101,7 @@ export function ProjectsDashboard({
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">Panel principal</p>
           <h1 className="font-display mt-2 text-3xl font-semibold text-foreground">Proyectos de evaluación</h1>
           <p className="mt-2 text-muted-foreground">
-            Crea proyectos, asigna evaluadores y consolida hallazgos heurísticos de forma local.
+            Evaluaciones heurísticas con expertos y tests de usabilidad con usuarios, de forma local.
           </p>
         </div>
         <Button onClick={() => setShowForm((value) => !value)}>
@@ -105,6 +116,25 @@ export function ProjectsDashboard({
             <CardDescription>Define el producto a evaluar y la configuración heurística.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="kind">Técnica</Label>
+              <Select
+                id="kind"
+                value={form.kind}
+                onChange={(e) => setForm({ ...form, kind: e.target.value as keyof typeof PROJECT_KIND_LABELS })}
+              >
+                {Object.entries(PROJECT_KIND_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {form.kind === "USABILITY_TEST"
+                  ? "Con usuarios reales: escenarios, éxito, tiempo y errores críticos. Complementa a la evaluación heurística, no la sustituye."
+                  : "Con expertos: inspección con un set de heurísticas y consolidación de hallazgos."}
+              </p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del proyecto</Label>
               <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -136,7 +166,11 @@ export function ProjectsDashboard({
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="config">Configuración de evaluación</Label>
+              <Label htmlFor="config">
+                {form.kind === "USABILITY_TEST"
+                  ? "Principios de usabilidad (para indicar cuál se vulnera)"
+                  : "Configuración de evaluación"}
+              </Label>
               <Select
                 id="config"
                 value={form.evaluationConfigId}
@@ -169,13 +203,23 @@ export function ProjectsDashboard({
         {projects.map((project) => (
           <Card key={project.id} className="border-border/80 shadow-sm">
             <CardHeader>
+              <Badge variant={project.kind === "USABILITY_TEST" ? "default" : "secondary"} className="mb-2 w-fit">
+                {PROJECT_KIND_LABELS[project.kind]}
+              </Badge>
               <CardTitle>{project.name}</CardTitle>
               <CardDescription>{project.heuristicSet.name}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-sm text-muted-foreground">
                 <p>Estado: {PROJECT_STATUS_LABELS[project.status]}</p>
-                <p>{project._count.evaluators} evaluadores · {project._count.findings} hallazgos</p>
+                {project.kind === "USABILITY_TEST" ? (
+                  <p>
+                    {project._count.scenarios} escenarios · {project._count.participants} participantes ·{" "}
+                    {project._count.issues} problemas
+                  </p>
+                ) : (
+                  <p>{project._count.evaluators} evaluadores · {project._count.findings} hallazgos</p>
+                )}
                 <p>Actualizado: {project.updatedAtLabel}</p>
               </div>
               <div className="flex flex-wrap gap-2">
