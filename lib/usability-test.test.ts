@@ -15,7 +15,11 @@ import {
   formatSeconds,
   participantGuidance,
   planCompleteness,
+  roleParticipantGuidance,
   scenarioCountGuidance,
+  scenarioCountGuidanceByRole,
+  scenarioRoles,
+  scenariosForProfile,
   suggestIssueSeverity,
   type RunMetricInput,
 } from "./usability-test";
@@ -151,5 +155,44 @@ describe("formatSeconds", () => {
   it("formatea mm:ss", () => {
     assert.equal(formatSeconds(75), "1:15");
     assert.equal(formatSeconds(null), "—");
+  });
+});
+
+describe("pruebas con varios roles", () => {
+  const scenarios = [
+    { code: "S1", role: "SoporteAdmin" },
+    { code: "E1", role: "TecnicoOperativo" },
+    { code: "E2", role: "TecnicoOperativo" },
+    { code: "L1", role: "Laboratorista" },
+  ];
+
+  it("lista los roles sin repetir y en orden", () => {
+    assert.deepEqual(scenarioRoles(scenarios), ["SoporteAdmin", "TecnicoOperativo", "Laboratorista"]);
+  });
+
+  it("muestra a cada participante solo los escenarios de su rol", () => {
+    assert.deepEqual(scenariosForProfile(scenarios, "TecnicoOperativo").map((s) => s.code), ["E1", "E2"]);
+  });
+
+  it("si el perfil no coincide con ningún rol, no oculta escenarios", () => {
+    assert.equal(scenariosForProfile(scenarios, "Tecnico").length, 4);
+    assert.equal(scenariosForProfile(scenarios, null).length, 4);
+    const noRoles: Array<{ code: string; role?: string | null }> = [{ code: "A" }, { code: "B" }];
+    assert.equal(scenariosForProfile(noRoles, "Cualquiera").length, 2);
+  });
+
+  it("recomienda 5 participantes por rol y no 5 en total", () => {
+    const roles = ["A", "B", "C"];
+    assert.match(roleParticipantGuidance({}, roles).message, /5 participantes por rol \(15 en total\)/);
+    assert.equal(roleParticipantGuidance({ A: 1, B: 5, C: 5 }, roles).level, "warning");
+    assert.equal(roleParticipantGuidance({ A: 3, B: 5, C: 5 }, roles).level, "info");
+    assert.equal(roleParticipantGuidance({ A: 5, B: 5, C: 6 }, roles).level, "ok");
+  });
+
+  it("mide el tope de escenarios por rol, no el total de la prueba", () => {
+    assert.equal(scenarioCountGuidanceByRole(scenarios), null);
+    const many = [...Array(9).keys()].map((i) => ({ role: "T", i })).concat([{ role: "S", i: 0 }]);
+    assert.equal(scenarioCountGuidanceByRole(many)?.level, "info");
+    assert.equal(scenarioCountGuidanceByRole(Array.from({ length: 8 }, () => ({ role: null })))?.level, "warning");
   });
 });

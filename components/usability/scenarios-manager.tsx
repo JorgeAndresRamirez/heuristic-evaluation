@@ -11,7 +11,7 @@ import { Field, Notice } from "@/components/usability/fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
-import { analyzeScenarioCard, MAX_RECOMMENDED_SCENARIOS, scenarioCountGuidance } from "@/lib/usability-test";
+import { analyzeScenarioCard, MAX_RECOMMENDED_SCENARIOS, scenarioCountGuidanceByRole } from "@/lib/usability-test";
 
 export type ScenarioItem = {
   id: string;
@@ -48,7 +48,7 @@ export function ScenariosManager({ projectId, scenarios }: { projectId: string; 
   const [saving, setSaving] = useState(false);
 
   const issues = useMemo(() => analyzeScenarioCard(draft.scenarioCard), [draft.scenarioCard]);
-  const countGuidance = scenarioCountGuidance(scenarios.length + (editingId ? 0 : 1));
+  const countGuidance = scenarioCountGuidanceByRole(editingId ? scenarios : [...scenarios, { role: draft.role }]);
   const blocking = issues.some((issue) => issue.level === "error");
 
   function startEdit(item: ScenarioItem) {
@@ -98,7 +98,9 @@ export function ScenariosManager({ projectId, scenarios }: { projectId: string; 
         meta alcanzable. Al participante se le entrega solo la <strong>tarjeta-escenario</strong>: narrativa, en su
         lenguaje, sin explicar los pasos ni el tiempo límite. Se recomiendan no más de {MAX_RECOMMENDED_SCENARIOS}.
       </Notice>
-      {countGuidance && <Notice tone="warning">{countGuidance.message}</Notice>}
+      {countGuidance && (
+        <Notice tone={countGuidance.level === "warning" ? "warning" : "info"}>{countGuidance.message}</Notice>
+      )}
 
       <Card>
         <CardHeader>

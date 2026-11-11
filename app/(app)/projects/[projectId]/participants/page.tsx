@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { ParticipantsManager } from "@/components/usability/participants-manager";
 import { TestNav } from "@/components/usability/test-nav";
 import { computeUsabilitySummary, loadUsabilityProject } from "@/lib/usability-data";
+import { scenariosForProfile } from "@/lib/usability-test";
 
 type Params = { params: Promise<{ projectId: string }> };
 
@@ -21,7 +22,7 @@ export default async function ParticipantsPage({ params }: Params) {
       <TestNav projectId={project.id} projectName={project.name} />
       <ParticipantsManager
         projectId={project.id}
-        scenarioCount={project.scenarios.length}
+        roles={summary.roles}
         guidance={summary.guidance}
         plannedParticipants={project.testPlan?.plannedParticipants ?? 5}
         participants={project.participants.map((participant) => ({
@@ -34,6 +35,7 @@ export default async function ParticipantsPage({ params }: Params) {
           consentSigned: participant.consentSigned,
           recordingAuthorized: participant.recordingAuthorized,
           notes: participant.notes,
+          scenarioCount: scenariosForProfile(project.scenarios, participant.profile).length,
           recordedScenarios: (participant.session?.runs ?? []).filter((run) => run.outcome !== null).length,
         }))}
       />

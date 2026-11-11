@@ -9,7 +9,9 @@ import {
   buildScenarioMetrics,
   participantGuidance,
   planCompleteness,
-  scenarioCountGuidance,
+  roleParticipantGuidance,
+  scenarioCountGuidanceByRole,
+  scenarioRoles,
   type RunMetricInput,
 } from "@/lib/usability-test";
 
@@ -69,6 +71,13 @@ export function computeUsabilitySummary(project: UsabilityProject) {
     return { scenario, metrics: buildScenarioMetrics(runs, scenario.timeLimitMinutes) };
   });
 
+  const roles = scenarioRoles(project.scenarios);
+  const countsByRole: Record<string, number> = {};
+  for (const participant of real) {
+    const role = participant.profile?.trim() ?? "";
+    if (roles.includes(role)) countsByRole[role] = (countsByRole[role] ?? 0) + 1;
+  }
+  const roleFactor = Math.max(roles.length, 1);
   const profiles = new Set(project.participants.map((participant) => participant.profile?.trim() || "—"));
   const completeness = planCompleteness(project.testPlan, project.scenarios.length);
   const issuesWithRecommendation = project.issues.filter((issue) => (issue.recommendationHtml ?? "").trim()).length;
@@ -95,7 +104,7 @@ export function computeUsabilitySummary(project: UsabilityProject) {
       label: "Reclutamiento",
       detail: "Participantes elegibles con consentimiento",
       done: project.participants.filter((p) => p.eligibilityConfirmed && p.consentSigned && !p.isReserve).length,
-      total: project.testPlan?.plannedParticipants ?? 5,
+      total: (project.testPlan?.plannedParticipants ?? 5) * roleFactor,
       href: "participants",
     },
     {
@@ -103,7 +112,7 @@ export function computeUsabilitySummary(project: UsabilityProject) {
       label: "Desarrollo de la prueba",
       detail: "Sesiones realizadas con participantes reales",
       done: real.length,
-      total: project.testPlan?.plannedParticipants ?? 5,
+      total: (project.testPlan?.plannedParticipants ?? 5) * roleFactor,
       href: "participants",
     },
     {
@@ -129,8 +138,10 @@ export function computeUsabilitySummary(project: UsabilityProject) {
     scenarioMetrics,
     completeness,
     phases,
-    guidance: participantGuidance(real.length, profiles.size),
-    scenarioGuidance: scenarioCountGuidance(project.scenarios.length),
+    guidance:
+      roles.length > 1 ? roleParticipantGuidance(countsByRole, roles) : participantGuidance(real.length, profiles.size),
+    scenarioGuidance: scenarioCountGuidanceByRole(project.scenarios),
+    roles,
     pilotCount: project.participants.filter((p) => p.isPilot).length,
   };
 }

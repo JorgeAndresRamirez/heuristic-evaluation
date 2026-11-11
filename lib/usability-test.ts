@@ -353,3 +353,61 @@ export function scenarioCountGuidance(count: number): Guidance | null {
   }
   return null;
 }
+
+// ─── Pruebas con varios roles (una hoja y unas tarjetas por rol) ───────────────────────────────────
+
+type WithRole = { role?: string | null };
+
+/** Roles distintos de los escenarios, en el orden en que aparecen. */
+export function scenarioRoles(scenarios: WithRole[]): string[] {
+  const roles: string[] = [];
+  for (const scenario of scenarios) {
+    const role = scenario.role?.trim();
+    if (role && !roles.includes(role)) roles.push(role);
+  }
+  return roles;
+}
+
+/**
+ * Escenarios que le corresponden a un participante según su perfil. Si la prueba no define roles, o el perfil no
+ * coincide con ninguno, devuelve todos (así nunca se oculta un escenario por un perfil mal escrito).
+ */
+export function scenariosForProfile<T extends WithRole>(scenarios: T[], profile: string | null | undefined): T[] {
+  const wanted = profile?.trim();
+  if (!wanted || !scenarioRoles(scenarios).includes(wanted)) return scenarios;
+  return scenarios.filter((scenario) => scenario.role?.trim() === wanted);
+}
+
+/** Recomendación de participantes cuando hay varios roles: 5 por rol (Nielsen), no 5 en total. */
+export function roleParticipantGuidance(countsByRole: Record<string, number>, roles: string[]): Guidance {
+  const total = roles.reduce((sum, role) => sum + (countsByRole[role] ?? 0), 0);
+  const recommended = `Lo recomendado son 5 participantes por rol (${roles.length * 5} en total).`;
+  if (total === 0) return { level: "info", message: `Aún no hay sesiones. ${recommended}` };
+  const detail = roles.map((role) => `${role}: ${countsByRole[role] ?? 0}`).join(" · ");
+  if (roles.some((role) => countsByRole[role] === 1)) {
+    return {
+      level: "warning",
+      message: `Por rol, ${detail}. Con un solo participante no se puede contrastar una conducta anómala. ${recommended}`,
+    };
+  }
+  if (roles.some((role) => (countsByRole[role] ?? 0) < 5)) {
+    return {
+      level: "info",
+      message: `Por rol, ${detail}. ${recommended} Entre 2 y 4 solo se justifica con recursos muy limitados (enfoque Lean).`,
+    };
+  }
+  return { level: "ok", message: `Por rol, ${detail}: dentro de lo recomendado.` };
+}
+
+/** Con varios roles, el límite de escenarios se mide por rol (lo que realmente hace cada participante). */
+export function scenarioCountGuidanceByRole(scenarios: WithRole[]): Guidance | null {
+  const roles = scenarioRoles(scenarios);
+  if (roles.length < 2) return scenarioCountGuidance(scenarios.length);
+  const perRole = roles.map((role) => scenarios.filter((scenario) => scenario.role?.trim() === role).length);
+  const max = Math.max(...perRole);
+  if (max <= MAX_RECOMMENDED_SCENARIOS) return null;
+  return {
+    level: max > 10 ? "warning" : "info",
+    message: `Cada participante hace los escenarios de su rol (de ${Math.min(...perRole)} a ${max}). El Máster recomienda no más de ${MAX_RECOMMENDED_SCENARIOS} por prueba: agrupa funciones relacionadas y vigila la fatiga.`,
+  };
+}

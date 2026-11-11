@@ -42,16 +42,24 @@ export function TestReportView({ project }: { project: UsabilityProject }) {
             {item.label}
           </Link>
         ))}
-        {roles.map((role) => (
+        {roles.flatMap((role) => [
           <Link
-            key={role}
+            key={`obs-${role}`}
             href={`/api/projects/${project.id}/test-report?doc=observation&role=${encodeURIComponent(role)}`}
             target="_blank"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
             Hoja del observador · {role} (PDF)
-          </Link>
-        ))}
+          </Link>,
+          <Link
+            key={`cards-${role}`}
+            href={`/api/projects/${project.id}/test-report?doc=cards&role=${encodeURIComponent(role)}`}
+            target="_blank"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Tarjetas · {role} (PDF)
+          </Link>,
+        ])}
       </div>
 
       <Notice tone={summary.guidance.level === "warning" ? "warning" : "info"} title="Participantes">

@@ -8,6 +8,7 @@ import { SessionWorkspace } from "@/components/usability/session-workspace";
 import { TestNav } from "@/components/usability/test-nav";
 import { DEFAULT_SATISFACTION_SCALE } from "@/lib/constants";
 import { loadUsabilityProject } from "@/lib/usability-data";
+import { scenariosForProfile } from "@/lib/usability-test";
 
 type Params = { params: Promise<{ projectId: string; participantId: string }> };
 
@@ -40,7 +41,7 @@ export default async function SessionPage({ params }: Params) {
           finalQuestionsNotes: session?.finalQuestionsNotes ?? "",
         }}
         satisfactionScale={project.testPlan?.satisfactionScale || DEFAULT_SATISFACTION_SCALE}
-        scenarios={project.scenarios.map((scenario) => {
+        scenarios={scenariosForProfile(project.scenarios, participant.profile).map((scenario) => {
           const run = session?.runs.find((item) => item.scenarioId === scenario.id);
           return {
             id: scenario.id,

@@ -57,7 +57,9 @@ export function UsabilityOverview({
           antes de las sesiones. Márcalo en el documento-guía cuando esté hecho.
         </Notice>
       )}
-      {scenarioGuidance && <Notice tone="warning">{scenarioGuidance.message}</Notice>}
+      {scenarioGuidance && (
+        <Notice tone={scenarioGuidance.level === "warning" ? "warning" : "info"}>{scenarioGuidance.message}</Notice>
+      )}
       <Notice tone={guidance.level === "warning" ? "warning" : "info"} title="Participantes">
         {guidance.message}
         {pilotCount > 0 && ` Hay ${pilotCount} piloto(s) que no cuentan en los resultados.`}

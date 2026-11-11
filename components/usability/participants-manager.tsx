@@ -12,7 +12,7 @@ import { Field, Notice } from "@/components/usability/fields";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input, Textarea } from "@/components/ui/input";
+import { Input, Select, Textarea } from "@/components/ui/input";
 import type { Guidance } from "@/lib/usability-test";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,7 @@ export type ParticipantItem = {
   recordingAuthorized: boolean;
   notes: string | null;
   recordedScenarios: number;
+  scenarioCount: number;
 };
 
 type Draft = {
@@ -54,13 +55,13 @@ const emptyDraft = (code: string): Draft => ({
 export function ParticipantsManager({
   projectId,
   participants,
-  scenarioCount,
+  roles,
   guidance,
   plannedParticipants,
 }: {
   projectId: string;
   participants: ParticipantItem[];
-  scenarioCount: number;
+  roles: string[];
   guidance: Guidance;
   plannedParticipants: number;
 }) {
@@ -112,7 +113,7 @@ export function ParticipantsManager({
 
   return (
     <div className="space-y-6">
-      <Notice tone={guidance.level === "warning" ? "warning" : "info"} title={`Objetivo: ${plannedParticipants} participantes`}>
+      <Notice tone={guidance.level === "warning" ? "warning" : "info"} title={roles.length > 1 ? `Objetivo: ${plannedParticipants} participantes por rol (${plannedParticipants * roles.length} en total)` : `Objetivo: ${plannedParticipants} participantes`}>
         {guidance.message}
       </Notice>
       <Notice tone="info" title="Antes de las sesiones">
@@ -133,7 +134,18 @@ export function ParticipantsManager({
             <Input id="pt-code" value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value })} />
           </Field>
           <Field label="Perfil (relación con el sistema)" htmlFor="pt-profile">
-            <Input id="pt-profile" value={draft.profile} onChange={(e) => setDraft({ ...draft, profile: e.target.value })} />
+            {roles.length > 0 ? (
+              <Select id="pt-profile" value={draft.profile} onChange={(e) => setDraft({ ...draft, profile: e.target.value })}>
+                <option value="">Selecciona el rol</option>
+                {roles.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </Select>
+            ) : (
+              <Input id="pt-profile" value={draft.profile} onChange={(e) => setDraft({ ...draft, profile: e.target.value })} />
+            )}
           </Field>
           <fieldset className="grid gap-2 md:col-span-2 md:grid-cols-2">
             <legend className="mb-1 text-sm font-medium">Estado</legend>
@@ -178,7 +190,7 @@ export function ParticipantsManager({
                     {participant.isPilot && <Badge variant="secondary">Piloto</Badge>}
                     {participant.isReserve && <Badge variant="secondary">Reserva</Badge>}
                     <Badge variant="outline">
-                      {participant.recordedScenarios} de {scenarioCount} escenarios registrados
+                      {participant.recordedScenarios} de {participant.scenarioCount} escenarios registrados
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{participant.profile || "Sin perfil indicado"}</p>

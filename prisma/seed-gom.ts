@@ -13,7 +13,7 @@
  * El alcance de cada rol sale de la matriz de roles aprobada de GOM (MatrizDeRoles.aprobada.txt) y del ADR-007.
  * Orden lógico de la ronda (cada prueba deja listo lo que necesita la siguiente):
  *   1 SoporteAdmin → 2 TecnicoOperativo «Preparar» → 3 TecnicoOperativo «Planear y operar» →
- *   4 TecnicoOperativo «Seguimiento» → 5 Laboratorista (y cierre del SoporteAdmin: escenario S6).
+ *   4 TecnicoOperativo «Seguimiento» → 5 Laboratorista.
  *
  * Uso: npm run db:seed:gom
  */
@@ -118,7 +118,7 @@ const BLOCKS: SeedProject[] = [
         title: "Reunir la evidencia de los mantenimientos para una auditoría",
         userGoal: "Entregar a control interno un archivo con lo que se hizo, quién lo hizo y qué se encontró.",
         description:
-          "Ruta esperada: Actividades › Histórico › Reporte de auditoría (Excel con ejecuciones y hallazgos; Admin y SoporteAdmin). Depende de: registros de mantenimiento: se aplica al final de la ronda, después de los escenarios del Laboratorista. Con el histórico vacío el sistema avisa y no descarga: ese caso se prueba aparte.",
+          "Ruta esperada: Actividades › Histórico › Reporte de auditoría (Excel con ejecuciones y hallazgos; Admin y SoporteAdmin). Depende de: que el ambiente de pruebas tenga registros de mantenimiento (los datos de prueba existentes bastan; no hace falta esperar a la prueba del Laboratorista). Con el histórico vacío el sistema avisa y no descarga: ese caso se prueba aparte.",
         startingPoint: "Sesión iniciada como SoporteAdmin, en la pantalla de inicio.",
         timeLimitMinutes: 6,
         completionMilestone:
@@ -365,18 +365,13 @@ const TEST_NAME = "GOM · Ronda 1 · Prueba de usabilidad por roles";
  * Decisión del responsable (2026-11-11): no hay tiempo ni forma de aplicar varias pruebas, así que la ronda es UNA sola
  * prueba con todos los escenarios, en el orden real de trabajo: SoporteAdmin → TecnicoOperativo → Laboratorista.
  * Se supera a propósito el máximo de 6 escenarios del Máster: el plan lo deja dicho y la guía invita a repartirlos en sesiones.
- * La auditoría (S6) se mueve al final porque necesita los registros que deja el Laboratorista.
  */
 function buildSingleProject(): SeedProject {
-  const audit = BLOCKS[0].scenarios.find((scenario) => scenario.code === "S4");
-  const ordered = BLOCKS.flatMap((block) =>
-    block.scenarios.filter((scenario) => scenario !== audit).map((scenario) => ({ ...scenario, role: block.profile })),
-  );
-  if (audit) ordered.push({ ...audit, role: "SoporteAdmin" });
+  const ordered = BLOCKS.flatMap((block) => block.scenarios.map((scenario) => ({ ...scenario, role: block.profile })));
   return {
     name: TEST_NAME,
     description:
-      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S3: alta de personal, asignación de espacios y soporte de cuentas), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario) y cierre del SoporteAdmin (S4: auditoría). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
+      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S4: alta de personal, asignación de espacios, soporte de cuentas y reporte de auditoría), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
     profile: "SoporteAdmin, TecnicoOperativo y Laboratorista",
     profiles:
       "Tres perfiles, un bloque de escenarios para cada uno, aplicado a personas de ese perfil: SoporteAdmin (administra el sistema a nivel operativo), TecnicoOperativo (responsable técnico de espacios físicos) y Laboratorista (ejecuta y registra el mantenimiento). Cada participante hace solo los escenarios de su rol.",
@@ -385,7 +380,7 @@ function buildSingleProject(): SeedProject {
     context:
       "Desviación consciente del Máster, por decisión del responsable: una sola prueba con " +
       ordered.length +
-      " escenarios (el Máster recomienda no más de 6 por prueba y pruebas separadas por grupos distintos). Cada participante solo hace los de su rol, así que en la práctica ve de 4 a 9; cada escenario agrupa varias funciones relacionadas para acercarse a lo recomendado; el facilitador puede partirlos en sesiones o pausas si la fatiga lo exige. En las descripciones internas, los códigos S, E, O, A y L indican el bloque: S (SoporteAdmin), E, O, A (TecnicoOperativo) y L (Laboratorista). Orden de aplicación: S1–S3, E1–E5, O1–O2, A1–A2, L1–L4 y por último S4 (auditoría: necesita los registros del Laboratorista). Los límites de tiempo son estimaciones que se calibran con el piloto.",
+      " escenarios (el Máster recomienda no más de 6 por prueba y pruebas separadas por grupos distintos). Cada participante solo hace los de su rol, así que en la práctica ve de 4 a 9; cada escenario agrupa varias funciones relacionadas para acercarse a lo recomendado; el facilitador puede partirlos en sesiones o pausas si la fatiga lo exige. En las descripciones internas, los códigos S, E, O, A y L indican el bloque: S (SoporteAdmin), E, O, A (TecnicoOperativo) y L (Laboratorista). Orden de aplicación: S1–S4, E1–E5, O1–O2, A1–A2, L1–L4. Cada participante hace solo el bloque de su rol, completo en una sola sesión. Los límites de tiempo son estimaciones que se calibran con el piloto.",
     scenarios: ordered,
   };
 }

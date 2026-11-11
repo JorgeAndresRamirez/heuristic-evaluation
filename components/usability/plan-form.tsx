@@ -157,7 +157,7 @@ export function TestPlanForm({
               <CardContent className="grid gap-4 md:grid-cols-2">
                 {section.id === "metodologia" && (
                   <>
-                    <Field label="Participantes planificados" htmlFor="plannedParticipants" hint="Recomendado: 5 por versión y por perfil de uso distinto (Nielsen).">
+                    <Field label="Participantes planificados" htmlFor="plannedParticipants" hint="Recomendado: 5 por versión y por perfil de uso distinto (Nielsen). Si la prueba tiene varios roles, son 5 por cada rol.">
                       <Input
                         id="plannedParticipants"
                         type="number"
