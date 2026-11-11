@@ -26,3 +26,18 @@ export function formatFileSize(bytes: number): string {
 export function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
+
+/**
+ * Cabecera Content-Disposition segura para descargas con el nombre del proyecto o del evaluador.
+ * Los encabezados HTTP solo admiten Latin-1: un guion largo («—») o una letra fuera de ese rango hacía fallar
+ * la respuesta con error 500. Se envía un nombre ASCII y, además, el nombre real codificado (RFC 5987).
+ */
+export function attachmentHeader(name: string, extension: string): string {
+  const ascii =
+    name
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-zA-Z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "archivo";
+  return `attachment; filename="${ascii}.${extension}"; filename*=UTF-8''${encodeURIComponent(name)}.${extension}`;
+}

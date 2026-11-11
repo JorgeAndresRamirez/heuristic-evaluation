@@ -9,6 +9,7 @@ import { embedEvidenceForReport } from "@/lib/evidence-embed";
 import { findingPrinciplesInclude } from "@/lib/finding-principles";
 import { findingsToCsv } from "@/lib/export-import";
 import { prisma } from "@/lib/prisma";
+import { attachmentHeader } from "@/lib/utils";
 import { ConsolidatedPdfDocument } from "@/lib/pdf/consolidated-report";
 import { IndividualPdfDocument } from "@/lib/pdf/individual-report";
 import { buildAnalytics, buildConsolidatedHtmlReport, buildIndividualHtmlReport } from "@/lib/report-builder";
@@ -77,7 +78,7 @@ export async function POST(request: Request, { params }: Params) {
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `attachment; filename="reporte-${evaluator.name.replace(/\s+/g, "-")}.html"`,
+        "Content-Disposition": attachmentHeader(`reporte-${evaluator.name}`, "html"),
       },
     });
   }
@@ -116,7 +117,7 @@ export async function POST(request: Request, { params }: Params) {
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="reporte-${evaluator.name.replace(/\s+/g, "-")}.pdf"`,
+        "Content-Disposition": attachmentHeader(`reporte-${evaluator.name}`, "pdf"),
       },
     });
   }
@@ -126,7 +127,7 @@ export async function POST(request: Request, { params }: Params) {
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="hallazgos-${project.name.replace(/\s+/g, "-")}.csv"`,
+        "Content-Disposition": attachmentHeader(`hallazgos-${project.name}`, "csv"),
       },
     });
   }
@@ -136,7 +137,7 @@ export async function POST(request: Request, { params }: Params) {
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="reporte-consolidado-${project.name.replace(/\s+/g, "-")}.pdf"`,
+        "Content-Disposition": attachmentHeader(`reporte-consolidado-${project.name}`, "pdf"),
       },
     });
   }
@@ -145,7 +146,7 @@ export async function POST(request: Request, { params }: Params) {
   return new NextResponse(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Content-Disposition": `attachment; filename="reporte-consolidado-${project.name.replace(/\s+/g, "-")}.html"`,
+      "Content-Disposition": attachmentHeader(`reporte-consolidado-${project.name}`, "html"),
     },
   });
 }

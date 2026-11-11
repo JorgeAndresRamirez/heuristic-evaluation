@@ -12,7 +12,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "test": "tsx --test lib/usability-test.test.ts",
+    "test": "tsx --test lib/usability-test.test.ts lib/utils.test.ts",
     "db:seed:gom": "tsx prisma/seed-gom.ts"
   },
   "prisma": {
