@@ -1,6 +1,11 @@
-# Evaluación Heurística
+# Evaluación de usabilidad (heurística y tests con usuarios)
 
-Herramienta **100% local** para **planificar, ejecutar, consolidar y documentar** evaluaciones heurísticas de usabilidad. Permite parametrizar sets de heurísticas, registrar hallazgos con evidencia multimedia, fusionar observaciones de múltiples evaluadores y generar reportes accionables para diseño y producto.
+Herramienta **100% local** para **planificar, ejecutar, consolidar y documentar** dos técnicas complementarias:
+
+- **Evaluación heurística** (con expertos): sets de heurísticas, hallazgos con evidencia multimedia, consolidación de varios evaluadores y reportes.
+- **Test de usabilidad** (con usuarios): documento-guía, escenarios no dirigidos, participantes, sesión del facilitador con cronómetro, errores críticos y no críticos, problemas con gravedad y recomendaciones, e informe con la estructura del documento-tipo del Máster. **Nuevo.**
+
+El test de usabilidad no sustituye a la evaluación heurística: la complementa. Fundamento y trazabilidad con el material del Máster en [docs/FundamentoMetodologico.md](docs/FundamentoMetodologico.md).
 
 **Autor:** Jorge Andrés Ramírez Sierra — Ingeniero de Software, Máster en Diseño de Experiencia de Usuario (Colombia)
 
@@ -82,6 +87,26 @@ Además:
 - Exportación **CSV** de hallazgos crudos
 - Reportes individuales ordenados por severidad, principio, pantalla, tarea y paso
 
+### M6 — Test de usabilidad con usuarios
+
+Se crea un proyecto con la técnica **Test de usabilidad** y se trabaja por secciones:
+
+| Sección | Qué permite |
+|---------|-------------|
+| **Resumen** | Avance por fase (briefing, planificación, reclutamiento, desarrollo, evaluación de resultados, recomendaciones), avisos y resultados por escenario |
+| **Documento-guía** | Los apartados del documento-tipo: identificación, presentación, resumen ejecutivo, metodología, aspectos éticos y legales. Lista lo que falta del planteamiento mínimo y avisa de criterios de elegibilidad sociodemográficos |
+| **Escenarios** | Objetivo del usuario, punto de partida, tiempo límite (solo del facilitador), hito de finalización y **tarjeta-escenario**. Revisa la tarjeta en vivo: detecta la palabra «tarea», escenarios dirigidos (pasos, menús, botones) e informar del tiempo |
+| **Participantes** | Códigos (P1…), perfil, elegibilidad, consentimiento, autorización de grabación, piloto y reserva. Guía de cuántos participantes se necesitan |
+| **Sesión** | Modo facilitador: tarjeta visible, cronómetro (ToT), resultado según el hito, «falso final» como error crítico, errores no críticos, pensamientos en voz alta y satisfacción 1–10. Preguntas finales al terminar |
+| **Problemas** | Hechos observados, principio de usabilidad vulnerado, tipo de error (crítico / no crítico), impacto, frecuencia y persistencia, gravedad (muy leve, leve, grave) con sugerencia, recomendación y capturas |
+| **Informe** | Efectividad, eficiencia y satisfacción (ISO 9241-11) por escenario; resultado por participante; problemas por gravedad; descargas |
+
+Descargas (PDF): informe de resultados, documento-guía, **tarjetas-escenario** para el participante, hoja de observación en blanco y consentimiento (borrador); CSV de ejecuciones.
+
+**Decisiones de diseño tomadas a propósito (del Máster):** no se muestra el tiempo límite al participante; no hay encuestas dentro del test (SUS/SEQ) —la satisfacción es una sola valoración numérica por escenario, tratada de forma cualitativa—; un piloto no cuenta en los resultados; el consentimiento queda como borrador hasta marcar la revisión legal.
+
+**Datos de GOM:** `npm run db:seed:gom` carga la ronda 1 de usabilidad de GOM como dos pruebas separadas (administrador de mantenimiento y laboratorista), con sus escenarios. Lo que no se conoce (responsables, fechas, lugar, texto legal…) queda vacío y el documento-guía lo marca como pendiente.
+
 ---
 
 ## Stack tecnológico
@@ -117,10 +142,10 @@ npm install
 cp .env.example .env
 ```
 
-El archivo `.env` debe contener:
+El archivo `.env` debe contener (la ruta de SQLite es relativa a `prisma/schema.prisma`, por eso lleva `../`; así la base queda en `storage/` junto a las evidencias y el respaldo la incluye):
 
 ```env
-DATABASE_URL="file:./storage/heuristic-evaluation.db"
+DATABASE_URL="file:../storage/heuristic-evaluation.db"
 ```
 
 ### 3. Base de datos
@@ -185,7 +210,9 @@ Abre [http://localhost:3000](http://localhost:3000).
 | `npm run db:generate` | Genera el cliente Prisma |
 | `npm run db:push` | Sincroniza esquema SQLite |
 | `npm run db:seed` | Carga sets de heurísticas y demo |
+| `npm run db:seed:gom` | Carga la ronda 1 de usabilidad de GOM (requiere `db:seed` antes) |
 | `npm run db:studio` | Abre Prisma Studio |
+| `npm test` | Pruebas de la lógica del test de usabilidad (`node:test`) |
 
 ---
 
@@ -237,6 +264,9 @@ heuristic-evaluation/
 | Inspección | `/projects/[projectId]/evaluate/[evaluatorId]` |
 | Consolidación | `/projects/[projectId]/consolidation` |
 | Reportes | `/projects/[projectId]/reports` |
+| Test de usabilidad: resumen, documento-guía, escenarios, participantes, problemas, informe | `/projects/[projectId]`, `/plan`, `/scenarios`, `/participants`, `/issues`, `/test-report` |
+| Test de usabilidad: sesión del facilitador | `/projects/[projectId]/sessions/[participantId]` |
+| Test de usabilidad: documentos | `/api/projects/[projectId]/test-report?doc=report\|guide\|cards\|consent\|observation\|csv` |
 
 ---
 

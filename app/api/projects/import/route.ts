@@ -18,8 +18,53 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Estructura JSON inválida" }, { status: 400 });
   }
 
+  // Un test de usabilidad exportado se importa como plantilla de la siguiente ronda: plan y escenarios.
+  const isUsability = data.kind === "USABILITY_TEST";
+  const usability = isUsability
+    ? {
+        kind: "USABILITY_TEST" as const,
+        testPlan: data.testPlan
+          ? (() => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { id, projectId, createdAt, updatedAt, ...plan } = data.testPlan;
+              return { create: plan };
+            })()
+          : undefined,
+        scenarios: {
+          create: (data.scenarios ?? []).map(
+            (
+              scenario: {
+                code: string;
+                title: string;
+                userGoal: string;
+                description?: string | null;
+                startingPoint: string;
+                timeLimitMinutes: number;
+                completionMilestone: string;
+                scenarioCard: string;
+                role?: string | null;
+              },
+              index: number,
+            ) => ({
+              orderIndex: index,
+              code: scenario.code,
+              title: scenario.title,
+              userGoal: scenario.userGoal,
+              description: scenario.description ?? null,
+              startingPoint: scenario.startingPoint,
+              timeLimitMinutes: scenario.timeLimitMinutes,
+              completionMilestone: scenario.completionMilestone,
+              scenarioCard: scenario.scenarioCard,
+              role: scenario.role ?? null,
+            }),
+          ),
+        },
+      }
+    : {};
+
   const project = await prisma.project.create({
     data: {
+      ...usability,
       name: `${data.name} (importado)`,
       description: data.description,
       productName: data.productName,

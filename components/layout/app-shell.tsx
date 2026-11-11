@@ -25,9 +25,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div>
               <Link href="/" className="font-display text-[15px] font-semibold text-foreground">
-                Evaluación Heurística
+                Evaluación de usabilidad
               </Link>
-              <p className="text-xs text-muted-foreground">Inspección · Consolidación · Reportes</p>
+              <p className="text-xs text-muted-foreground">Heurísticas · Tests con usuarios · Reportes</p>
             </div>
           </div>
           <nav className="flex flex-wrap gap-2">

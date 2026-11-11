@@ -7,12 +7,17 @@ import { ProjectsDashboard } from "@/components/evaluation/projects-dashboard";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 
+// Consulta la base en cada petición: sin esto, `next build` congela la lista con los datos de ese momento.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [projects, configs] = await Promise.all([
     prisma.project.findMany({
       include: {
         heuristicSet: { select: { name: true } },
-        _count: { select: { evaluators: true, findings: true } },
+        _count: {
+          select: { evaluators: true, findings: true, participants: true, scenarios: true, issues: true },
+        },
       },
       orderBy: { updatedAt: "desc" },
     }),
