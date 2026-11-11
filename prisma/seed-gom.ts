@@ -164,16 +164,16 @@ const BLOCKS: SeedProject[] = [
       },
       {
         code: "E3",
-        title: "Definir cada cuánto necesita mantenimiento el equipo",
+        title: "Ajustar los criterios de frecuencia y definir cada cuánto necesita mantenimiento el equipo",
         userGoal: "Saber cada cuánto debe revisarse el equipo para programarlo en el semestre.",
         description:
-          "Ruta esperada: Mantenimiento › Frecuencias de mantenimiento (consultar el equipo, abrir la ficha de calificación, calificar los siete criterios y guardar). Depende de: E1 y de criterios de frecuencia activos que sumen 100 %. Deja listo: la frecuencia que usa E4 (con estas respuestas debe salir alta). Fuera de alcance: editar los criterios.",
+          "Ruta esperada: Mantenimiento › Criterios de evaluación de frecuencia (consultar, editar el peso o la descripción de un criterio y verificar que la suma siga en 100 %) y luego Mantenimiento › Frecuencias de mantenimiento (consultar el equipo, abrir la ficha de calificación, calificar los criterios y guardar). Depende de: E1. Deja listo: la frecuencia que usa E4 (con estas respuestas debe salir alta). Los criterios son globales: el cambio afecta a todos los equipos, así que el facilitador acuerda antes con el participante qué ajuste hará (o lo deja igual) y se restaura al terminar si hace falta. Agrupa: criterios + calificación.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
-        timeLimitMinutes: 8,
+        timeLimitMinutes: 16,
         completionMilestone:
-          "Los siete criterios quedan calificados y guardados y la lista muestra el total y la frecuencia calculada del equipo.",
+          "Los criterios quedan revisados con su suma en 100 %, todos los criterios del equipo quedan calificados y guardados y la lista muestra el total y la frecuencia calculada del equipo.",
         scenarioCard:
-          "El equipo que acabas de incorporar se usa casi todos los días, una falla detendría varias clases y el fabricante pide revisarlo con frecuencia. Para programar su mantenimiento en el semestre necesitas que el sistema te diga cada cuánto debe revisarse. Decides evaluarlo y conocer ese resultado.",
+          "El equipo que acabas de incorporar se usa casi todos los días, una falla detendría varias clases y el fabricante pide revisarlo con frecuencia. Antes de evaluarlo, quieres comprobar que los criterios con los que el sistema decide la frecuencia reflejan lo que de verdad importa en tu institución, y ajustarlos si no es así. Para programar su mantenimiento en el semestre necesitas que el sistema te diga cada cuánto debe revisarse. Decides evaluarlo y conocer ese resultado.",
       },
       {
         code: "E4",
@@ -373,7 +373,7 @@ function buildSingleProject(): SeedProject {
   return {
     name: TEST_NAME,
     description:
-      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S3: alta de personal, asignación de espacios y soporte de cuentas), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario) y cierre del SoporteAdmin (S4: auditoría). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
+      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S3: alta de personal, asignación de espacios y soporte de cuentas), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario) y cierre del SoporteAdmin (S4: auditoría). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
     profile: "SoporteAdmin, TecnicoOperativo y Laboratorista",
     profiles:
       "Tres perfiles, un bloque de escenarios para cada uno, aplicado a personas de ese perfil: SoporteAdmin (administra el sistema a nivel operativo), TecnicoOperativo (responsable técnico de espacios físicos) y Laboratorista (ejecuta y registra el mantenimiento). Cada participante hace solo los escenarios de su rol.",
