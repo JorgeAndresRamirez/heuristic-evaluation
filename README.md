@@ -95,17 +95,19 @@ Se crea un proyecto con la técnica **Test de usabilidad** y se trabaja por secc
 |---------|-------------|
 | **Resumen** | Avance por fase (briefing, planificación, reclutamiento, desarrollo, evaluación de resultados, recomendaciones), avisos y resultados por escenario |
 | **Documento-guía** | Los apartados del documento-tipo: identificación, presentación, resumen ejecutivo, metodología, aspectos éticos y legales. Lista lo que falta del planteamiento mínimo y avisa de criterios de elegibilidad sociodemográficos |
-| **Escenarios** | Objetivo del usuario, punto de partida, tiempo límite (solo del facilitador), hito de finalización y **tarjeta-escenario**. Revisa la tarjeta en vivo: detecta la palabra «tarea», escenarios dirigidos (pasos, menús, botones) e informar del tiempo |
-| **Participantes** | Códigos (P1…), perfil, elegibilidad, consentimiento, autorización de grabación, piloto y reserva. Guía de cuántos participantes se necesitan |
-| **Sesión** | Modo facilitador: tarjeta visible, cronómetro (ToT), resultado según el hito, «falso final» como error crítico, errores no críticos, pensamientos en voz alta y satisfacción 1–10. Preguntas finales al terminar |
+| **Escenarios** | Rol o perfil, objetivo del usuario, punto de partida, tiempo límite (solo del facilitador), hito de finalización y **tarjeta-escenario**. Revisa la tarjeta en vivo: detecta la palabra «tarea», escenarios dirigidos (pasos, menús, botones) e informar del tiempo |
+| **Participantes** | Códigos (P1…), perfil (lista con los roles de los escenarios), elegibilidad, consentimiento, autorización de grabación, piloto y reserva. Guía de cuántos participantes se necesitan (5 por rol si hay varios roles) y avance «X de N escenarios» según su rol |
+| **Sesión** | Modo facilitador: solo los escenarios del rol del participante, tarjeta visible, cronómetro (ToT), resultado según el hito, «falso final» como error crítico, errores no críticos, pensamientos en voz alta y satisfacción 1–10. Preguntas finales al terminar |
 | **Problemas** | Hechos observados, principio de usabilidad vulnerado, tipo de error (crítico / no crítico), impacto, frecuencia y persistencia, gravedad (muy leve, leve, grave) con sugerencia, recomendación y capturas |
 | **Informe** | Efectividad, eficiencia y satisfacción (ISO 9241-11) por escenario; resultado por participante; problemas por gravedad; descargas |
 
-Descargas (PDF): informe de resultados, documento-guía, **tarjetas-escenario** para el participante, hoja de observación en blanco y consentimiento (borrador); CSV de ejecuciones.
+Descargas (PDF): informe de resultados, documento-guía, **tarjetas-escenario** para el participante, hoja de observación en blanco y consentimiento (borrador); CSV de ejecuciones. Si los escenarios tienen **rol**, el informe añade una hoja del observador y unas tarjetas por rol (`?doc=observation&role=…` y `?doc=cards&role=…`), para que cada observador y cada participante reciba solo lo suyo.
+
+**Pruebas con varios roles:** el campo «Rol o perfil» del escenario agrupa los escenarios por rol. Con dos o más roles, la sesión filtra los escenarios por el perfil del participante (un perfil que no coincide con ningún rol muestra todos, para no ocultar nada), la meta de participantes es por rol y el tope de escenarios se mide por rol. La lógica pura está en `lib/usability-test.ts` (`scenarioRoles`, `scenariosForProfile`, `roleParticipantGuidance`, `scenarioCountGuidanceByRole`) con pruebas en `lib/usability-test.test.ts`.
 
 **Decisiones de diseño tomadas a propósito (del Máster):** no se muestra el tiempo límite al participante; no hay encuestas dentro del test (SUS/SEQ) —la satisfacción es una sola valoración numérica por escenario, tratada de forma cualitativa—; un piloto no cuenta en los resultados; el consentimiento queda como borrador hasta marcar la revisión legal.
 
-**Datos de GOM:** `npm run db:seed:gom` carga la ronda 1 de usabilidad de GOM como dos pruebas separadas (administrador de mantenimiento y laboratorista), con sus escenarios. Lo que no se conoce (responsables, fechas, lugar, texto legal…) queda vacío y el documento-guía lo marca como pendiente.
+**Datos de GOM:** `npm run db:seed:gom` carga la ronda 1 de usabilidad de GOM como **una sola prueba por roles** con 17 escenarios (SoporteAdmin S1–S4, TecnicoOperativo E1–E5, O1–O2 y A1–A2, Laboratorista L1–L4) y el documento-guía diligenciado. Si el proyecto ya existe y no tiene participantes ni problemas, lo reemplaza; si ya tiene datos, no lo toca. Detalle, orden, supuestos y pendientes en [docs/RondaGOM.md](docs/RondaGOM.md).
 
 ---
 
@@ -226,6 +228,7 @@ heuristic-evaluation/
 ├── components/
 │   ├── heuristics/            # Gestión de sets y configuraciones
 │   ├── evaluation/            # Proyectos e inspección
+│   ├── usability/             # Test de usabilidad: plan, escenarios, participantes, sesión, problemas, informe
 │   ├── consolidation/         # Panel de fusión
 │   ├── reports/               # Gráficos y exportación
 │   ├── layout/                # Shell de navegación
@@ -238,12 +241,15 @@ heuristic-evaluation/
 │   ├── evidence-embed.ts      # Evidencias en reportes HTML/PDF
 │   ├── export-import.ts       # JSON/CSV
 │   ├── report-builder.ts      # HTML y analítica
+│   ├── usability-test.ts      # Lógica pura del test de usabilidad (con .test.ts)
+│   ├── usability-data.ts      # Carga y resumen del test de usabilidad
 │   ├── pdf/                   # Documentos PDF
 │   ├── storage.ts             # Evidencias locales
 │   └── validators/            # Esquemas Zod
 ├── prisma/
 │   ├── schema.prisma
 │   ├── seed.ts
+│   ├── seed-gom.ts            # Ronda 1 de usabilidad de GOM (npm run db:seed:gom)
 │   └── migrate-finding-principles.ts
 ├── storage/
 │   ├── heuristic-evaluation.db   # SQLite (gitignored)
@@ -266,7 +272,7 @@ heuristic-evaluation/
 | Reportes | `/projects/[projectId]/reports` |
 | Test de usabilidad: resumen, documento-guía, escenarios, participantes, problemas, informe | `/projects/[projectId]`, `/plan`, `/scenarios`, `/participants`, `/issues`, `/test-report` |
 | Test de usabilidad: sesión del facilitador | `/projects/[projectId]/sessions/[participantId]` |
-| Test de usabilidad: documentos | `/api/projects/[projectId]/test-report?doc=report\|guide\|cards\|consent\|observation\|csv` |
+| Test de usabilidad: documentos | `/api/projects/[projectId]/test-report?doc=report\|guide\|cards\|consent\|observation\|csv` (`cards` y `observation` aceptan `&role=<rol>`) |
 
 ---
 

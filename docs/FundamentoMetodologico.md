@@ -31,9 +31,9 @@ Este documento dice **de dónde sale cada decisión** del módulo y qué hace la
 | **No informar del tiempo límite** al participante (sesgo: presión, distracción) | ICU-T3, ICU-S3 | La tarjeta lo marca; las tarjetas PDF no lo llevan; solo el facilitador ve el límite |
 | Si se cumple el tiempo límite, el facilitador pide que **abandone y pase al siguiente** | ICU-T3 | El cronómetro avisa y existe «Detenido al llegar al límite» |
 | El criterio de finalización no lo decide el moderador sobre la marcha | ICU-T3 | «Hito de finalización» es un campo obligatorio y se muestra durante la sesión |
-| No más de **seis** tareas por prueba | ICU-T3 | `scenarioCountGuidance()` |
-| Si dos grupos usan el sistema de forma totalmente distinta, **pruebas separadas** | ICU-T3, ICU-S3 | GOM: dos proyectos (administrador y laboratorista) |
-| **5 a 15** participantes; Nielsen: 5 por versión descubren ~85 %; 1 usuario ~31 % con riesgo de conducta anómala | ICU-T3 | `participantGuidance()` |
+| No más de **seis** tareas por prueba | ICU-T3 | `scenarioCountGuidance()`; con varios roles, `scenarioCountGuidanceByRole()` lo mide por rol (aviso informativo hasta 10) |
+| Si dos grupos usan el sistema de forma totalmente distinta, **pruebas separadas** | ICU-T3, ICU-S3 | GOM: una sola prueba con los tres roles, por decisión del responsable (ver «Decisiones en contra»); el campo «Rol» separa escenarios, tarjetas y hojas del observador |
+| **5 a 15** participantes; Nielsen: 5 por versión descubren ~85 %; 1 usuario ~31 % con riesgo de conducta anómala | ICU-T3 | `participantGuidance()`; con varios roles, `roleParticipantGuidance()` recomienda 5 por rol |
 | Elegibilidad por **relación usuario–sistema**; lo sociodemográfico «nunca» como criterio principal, solo cuotas de diversidad | ICU-T3, ICU-S3 | `eligibilityWarnings()` en el documento-guía |
 | Confirmar asistencia 24 h antes y tener candidato de reserva; **piloto** que no cuenta como test | ICU-T3 | Participantes: reserva y piloto; el piloto queda fuera de las métricas |
 | Pensar en voz alta es la fuente de información más valiosa | ICU-T3 | Campo de observaciones con ayuda para citas textuales |
@@ -53,7 +53,8 @@ Este documento dice **de dónde sale cada decisión** del módulo y qué hace la
 1. **No hay SUS ni SEQ.** Son cuestionarios y el material del Máster es explícito: no se hacen encuestas en un test de usabilidad. Se conserva una única valoración de satisfacción por escenario, como pide el Tema 3.
 2. **No hay «ayuda» graduada** al participante. El Tema 3 solo contempla explicar sin añadir información y, si se cumple el tiempo, pedir que abandone. Una ayuda del facilitador invalida el resultado de ese escenario.
 3. **No se calculan estadísticas de satisfacción** (solo se listan los valores y la media se evita en la interfaz del informe).
-4. **El consentimiento no se genera automáticamente**: la herramienta solo ofrece un borrador marcado, porque el contenido legal no es estándar.
+4. **Una sola prueba para tres roles (GOM, 2026-11-11).** El Máster pide pruebas separadas y no más de seis escenarios; el responsable no tiene tiempo para varias pruebas. Se mantiene una prueba con escenarios agrupados por funciones relacionadas y un campo «Rol» que filtra la sesión, las tarjetas y las hojas del observador. El técnico hace 9 escenarios (supera el tope): se compensa agrupando y vigilando la fatiga.
+5. **El consentimiento no se genera automáticamente**: la herramienta solo ofrece un borrador marcado, porque el contenido legal no es estándar.
 
 ## 4. Lo que la herramienta no puede garantizar
 
