@@ -444,15 +444,44 @@ async function main() {
           profiles: definition.profiles,
           eligibilityCriteria: definition.eligibility,
           totalDurationMinutes: 120,
-          environment: "PHYSICAL",
+          environment: "VIRTUAL",
           severityCriteria: DEFAULT_SEVERITY_CRITERIA,
           satisfactionScale: DEFAULT_SATISFACTION_SCALE,
           participantInstructions: INSTRUCTIONS,
           dataToCollect:
             "Por escenario y participante: completado o no, tiempo en tarea, errores críticos y no críticos, pensamientos en voz alta, satisfacción de 1 a 10. Al final, preguntas para entender conductas puntuales. No se hacen encuestas.",
-          // Quedan vacíos a propósito (el documento-guía los marca como pendientes): responsables, contacto, lugar, fechas,
-          // reclutamiento, retribución, medios técnicos, sistemas de registro, roles del equipo, texto de consentimiento,
-          // derechos de imagen, protección de datos, conservación y código ético.
+          // 1. Identificación (datos confirmados por el responsable, 2026-11-11)
+          responsibles:
+            "Jorge Andrés Ramírez Sierra, Ingeniero de Software Senior de SICAU (facilitador y responsable de la prueba). Gerónimo Álvarez, equipo de QA de SICAU (observador). Solicitante del sistema: Juan Guillermo Rojas.",
+          contact: "Chat de la videollamada de Google Meet de cada sesión.",
+          location: "Remoto, por videollamada de Google Meet (herramienta institucional).",
+          plannedDates: "Del 2026-11-11 al 2026-11-13.",
+          version: "1.0 · 2026-11-11",
+          confidentiality:
+            "La información recopilada es de uso exclusivo del equipo de SICAU y se refiere únicamente al sistema GOM. No se comparte fuera de ese equipo.",
+          keywords: "GOM, usabilidad, mantenimiento de equipos, SoporteAdmin, TecnicoOperativo, Laboratorista",
+          executiveSummary:
+            "Prueba de usabilidad de GOM con usuarios reales de los tres roles que lo usan (SoporteAdmin, TecnicoOperativo y Laboratorista), en sesiones remotas por Google Meet. Cada participante resuelve los escenarios de su rol; el equipo registra si los completa, cuánto tarda, qué errores comete y qué dice, para detectar problemas de usabilidad que corregir antes de la siguiente entrega.",
+          // 4. Metodología
+          recruitmentProcedure:
+            "Los participantes los designa el solicitante, Juan Guillermo Rojas, entre el personal y los contratistas de la institución que desempeñan el rol de cada bloque. Se les invita a una sesión por Google Meet.",
+          incentive: "Sin retribución: participan como parte de sus funciones en la institución.",
+          technicalMeans:
+            "Google Meet con pantalla compartida y audio; el participante usa su propio equipo y navegador, con el ambiente de pruebas de GOM. El facilitador y el observador usan esta herramienta para la guía, las tarjetas y la hoja de observación.",
+          recordingSystems:
+            "Grabación de la sesión en Google Meet (pantalla y voz) con aviso previo, y hoja de observación del observador por cada participante. Los hallazgos se registran en esta herramienta.",
+          teamRoles:
+            "Facilitador: Jorge Andrés Ramírez Sierra (presenta la prueba, entrega las tarjetas y atiende las preguntas al final). Observador: Gerónimo Álvarez (registra hechos en la hoja de observación sin intervenir).",
+          // 5. Aspectos éticos y legales (legalReviewDone queda en falso: el texto se apoya en lo ya aceptado, pendiente de revisión legal)
+          consentText:
+            "Participas en una prueba de usabilidad del sistema GOM. Se evalúa el sistema, no a ti: no hay respuestas correctas ni incorrectas. Se grabará la pantalla y la voz de la sesión de Google Meet. Puedes detener la prueba cuando quieras. Como personal o contratista de la institución, ya aceptaste el tratamiento de datos de la universidad y el uso de tu imagen; la información de esta prueba se usará exclusivamente por el equipo de SICAU y solo en relación con GOM.",
+          imageRights:
+            "El personal y los contratistas de la institución ya aceptaron el uso de su imagen. Las grabaciones de estas sesiones se usan solo para el análisis de la prueba por el equipo de SICAU.",
+          dataProtection:
+            "La universidad cuenta con una política de tratamiento de datos que el personal y los contratistas ya aceptaron. Los datos de la prueba se usan exclusivamente por el equipo de SICAU y para el sistema GOM.",
+          dataRetention: "Según la política de tratamiento de datos de la universidad.",
+          ethicsCode:
+            "El facilitador y el observador tratan al participante con respeto, evalúan el sistema y no a la persona, no inducen las respuestas ni ayudan durante los escenarios, no revelan el tiempo límite y mantienen la confidencialidad de lo observado.",
         },
       },
       scenarios: {
