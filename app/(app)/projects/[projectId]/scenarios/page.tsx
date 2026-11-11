@@ -30,6 +30,7 @@ export default async function ScenariosPage({ params }: Params) {
           timeLimitMinutes: scenario.timeLimitMinutes,
           completionMilestone: scenario.completionMilestone,
           scenarioCard: scenario.scenarioCard,
+          role: scenario.role,
         }))}
       />
     </>

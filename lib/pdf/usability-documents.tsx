@@ -279,11 +279,11 @@ export function ConsentDocument({ project }: { project: UsabilityProject }) {
 
 // ─── Hoja de observación en blanco (una por participante) ─────────────────────────────────────
 
-export function ObservationSheetDocument({ project }: { project: UsabilityProject }) {
+export function ObservationSheetDocument({ project, role }: { project: UsabilityProject; role?: string | null }) {
   return (
-    <Document title={`Hoja de observación · ${project.name}`}>
+    <Document title={`Hoja de observación${role ? ` · ${role}` : ""} · ${project.name}`}>
       <Page size="A4" style={s.page}>
-        <Text style={s.title}>Hoja de observación</Text>
+        <Text style={s.title}>Hoja de observación{role ? ` · ${role}` : ""}</Text>
         <Text style={s.subtitle}>{project.name}</Text>
         <View style={[s.box, { marginTop: 8 }]}>
           <Text>Código del participante: ____________   Fecha: ____________   Facilitador: ____________________</Text>

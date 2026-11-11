@@ -90,8 +90,17 @@ export async function GET(request: Request, { params }: Params) {
   if (doc === "guide") return pdfResponse(await renderToBuffer(<GuideDocument project={project} />), `${base}-documento-guia.pdf`);
   if (doc === "cards") return pdfResponse(await renderToBuffer(<CardsDocument project={project} />), `${base}-tarjetas-escenario.pdf`);
   if (doc === "consent") return pdfResponse(await renderToBuffer(<ConsentDocument project={project} />), `${base}-consentimiento.pdf`);
-  if (doc === "observation")
-    return pdfResponse(await renderToBuffer(<ObservationSheetDocument project={project} />), `${base}-hoja-de-observacion.pdf`);
+  if (doc === "observation") {
+    // ?role=<rol> imprime solo los escenarios de ese rol; sin parámetro, todos.
+    const role = url.searchParams.get("role");
+    const scenarios = role ? project.scenarios.filter((scenario) => scenario.role === role) : project.scenarios;
+    if (scenarios.length === 0) return NextResponse.json({ error: "No hay escenarios para ese rol" }, { status: 404 });
+    const suffix = role ? `-${slug(role)}` : "";
+    return pdfResponse(
+      await renderToBuffer(<ObservationSheetDocument project={{ ...project, scenarios }} role={role} />),
+      `${base}-hoja-de-observacion${suffix}.pdf`,
+    );
+  }
 
   if (doc === "report") {
     const evidenceByIssue: Record<string, EmbeddedEvidence[]> = {};

@@ -23,6 +23,7 @@ export type ScenarioItem = {
   timeLimitMinutes: number;
   completionMilestone: string;
   scenarioCard: string;
+  role?: string | null;
 };
 
 type Draft = Omit<ScenarioItem, "id">;
@@ -36,6 +37,7 @@ const emptyDraft = (code: string): Draft => ({
   timeLimitMinutes: 5,
   completionMilestone: "",
   scenarioCard: "",
+  role: "",
 });
 
 export function ScenariosManager({ projectId, scenarios }: { projectId: string; scenarios: ScenarioItem[] }) {
@@ -115,6 +117,9 @@ export function ScenariosManager({ projectId, scenarios }: { projectId: string; 
                 <Input id="sc-title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
               </Field>
             </div>
+            <Field label="Rol o perfil" htmlFor="sc-role" hint="Quién hace este escenario (p. ej. SoporteAdmin). Genera una hoja de observación por rol.">
+              <Input id="sc-role" value={draft.role ?? ""} onChange={(e) => setDraft({ ...draft, role: e.target.value })} />
+            </Field>
             <Field label="Objetivo del usuario" htmlFor="sc-goal" hint="La necesidad que el usuario espera satisfacer en el sistema.">
               <Textarea id="sc-goal" rows={2} value={draft.userGoal} onChange={(e) => setDraft({ ...draft, userGoal: e.target.value })} />
             </Field>
@@ -206,7 +211,7 @@ export function ScenariosManager({ projectId, scenarios }: { projectId: string; 
                   {scenario.code} · {scenario.title}
                 </CardTitle>
                 <CardDescription>
-                  Objetivo: {scenario.userGoal} · Límite {scenario.timeLimitMinutes} min (interno)
+                  {scenario.role ? `${scenario.role} · ` : ""}Objetivo: {scenario.userGoal} · Límite {scenario.timeLimitMinutes} min (interno)
                 </CardDescription>
               </div>
               <div className="flex gap-2">

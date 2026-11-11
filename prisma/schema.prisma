@@ -305,6 +305,8 @@ model TestScenario {
   timeLimitMinutes    Int
   completionMilestone String
   scenarioCard        String
+  /// Perfil o rol al que se aplica (p. ej. «TecnicoOperativo»). Permite una hoja de observación por rol.
+  role                String?
   runs                TaskRun[]
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt

@@ -54,6 +54,7 @@ export const scenarioSchema = z.object({
   timeLimitMinutes: z.number().int().min(1, "El tiempo límite es obligatorio").max(120),
   completionMilestone: z.string().min(1, "Define el hito de finalización (qué ocurre en pantalla cuando se logra)"),
   scenarioCard: z.string().min(20, "Escribe la tarjeta-escenario que leerá el participante"),
+  role: optionalText,
 });
 
 export const participantSchema = z.object({

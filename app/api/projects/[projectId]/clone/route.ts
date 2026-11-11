@@ -40,6 +40,7 @@ export async function POST(_request: Request, { params }: Params) {
               timeLimitMinutes: scenario.timeLimitMinutes,
               completionMilestone: scenario.completionMilestone,
               scenarioCard: scenario.scenarioCard,
+              role: scenario.role,
             })),
           },
         }

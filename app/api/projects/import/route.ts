@@ -42,6 +42,7 @@ export async function POST(request: Request) {
                 timeLimitMinutes: number;
                 completionMilestone: string;
                 scenarioCard: string;
+                role?: string | null;
               },
               index: number,
             ) => ({
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
               timeLimitMinutes: scenario.timeLimitMinutes,
               completionMilestone: scenario.completionMilestone,
               scenarioCard: scenario.scenarioCard,
+              role: scenario.role ?? null,
             }),
           ),
         },

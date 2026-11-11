@@ -38,6 +38,7 @@ type SeedScenario = {
   timeLimitMinutes: number;
   completionMilestone: string;
   scenarioCard: string;
+  role?: string;
 };
 
 type SeedProject = {
@@ -368,8 +369,10 @@ const TEST_NAME = "GOM · Ronda 1 · Prueba de usabilidad por roles";
  */
 function buildSingleProject(): SeedProject {
   const audit = BLOCKS[0].scenarios.find((scenario) => scenario.code === "S4");
-  const ordered = BLOCKS.flatMap((block) => block.scenarios.filter((scenario) => scenario !== audit));
-  if (audit) ordered.push(audit);
+  const ordered = BLOCKS.flatMap((block) =>
+    block.scenarios.filter((scenario) => scenario !== audit).map((scenario) => ({ ...scenario, role: block.profile })),
+  );
+  if (audit) ordered.push({ ...audit, role: "SoporteAdmin" });
   return {
     name: TEST_NAME,
     description:

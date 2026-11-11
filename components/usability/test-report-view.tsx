@@ -26,6 +26,7 @@ const downloads = [
 export function TestReportView({ project }: { project: UsabilityProject }) {
   const summary = computeUsabilitySummary(project);
   const issues = [...project.issues].sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
+  const roles = [...new Set(project.scenarios.map((scenario) => scenario.role).filter((role): role is string => !!role))];
   const criticalScenarios = summary.scenarioMetrics.filter(({ metrics }) => metrics.criticalErrors > 0);
 
   return (
@@ -39,6 +40,16 @@ export function TestReportView({ project }: { project: UsabilityProject }) {
             className={cn(buttonVariants({ variant: item.variant, size: "sm" }))}
           >
             {item.label}
+          </Link>
+        ))}
+        {roles.map((role) => (
+          <Link
+            key={role}
+            href={`/api/projects/${project.id}/test-report?doc=observation&role=${encodeURIComponent(role)}`}
+            target="_blank"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Hoja del observador · {role} (PDF)
           </Link>
         ))}
       </div>
