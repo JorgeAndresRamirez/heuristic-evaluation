@@ -6,6 +6,9 @@
 import { HeuristicsManager } from "@/components/heuristics/heuristics-manager";
 import { prisma } from "@/lib/prisma";
 
+// Consulta la base en cada petición: sin esto, `next build` congela la lista con los datos de ese momento.
+export const dynamic = "force-dynamic";
+
 export default async function HeuristicsPage() {
   const sets = await prisma.heuristicSet.findMany({
     include: { _count: { select: { principles: true, projects: true } } },
