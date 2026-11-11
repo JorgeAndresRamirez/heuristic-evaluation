@@ -45,3 +45,6 @@ next-env.d.ts
 /storage/*.db
 /storage/evidence/
 prisma/storage/
+
+# Documentos generados (informes, tarjetas, consentimientos): no se versionan
+*.pdf
