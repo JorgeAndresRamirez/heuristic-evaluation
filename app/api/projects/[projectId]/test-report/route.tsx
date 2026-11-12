@@ -13,8 +13,10 @@ import {
   ObservationSheetDocument,
   ResultsReportDocument,
 } from "@/lib/pdf/usability-documents";
+import { ExecutiveReportDocument, SessionFindingsDocument, type ScreenshotMap } from "@/lib/pdf/usability-extra-documents";
 import { htmlToPlainText } from "@/lib/report-utils";
-import { loadUsabilityProject } from "@/lib/usability-data";
+import { loadUsabilityProject, type UsabilityProject } from "@/lib/usability-data";
+import { formatSeconds } from "@/lib/usability-test";
 
 type Params = { params: Promise<{ projectId: string }> };
 
@@ -23,6 +25,25 @@ const slug = (value: string) => value.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-
 function csvCell(value: string | number | boolean | null | undefined): string {
   const text = value === null || value === undefined ? "" : String(value);
   return `"${text.replace(/"/g, '""')}"`;
+}
+
+const IMAGE_MIME: Record<string, string> = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" };
+
+/** Incrusta las capturas de los hallazgos de sesión (por id) para que el PDF no dependa de archivos externos. */
+async function embedScreenshots(project: UsabilityProject, participantId?: string): Promise<ScreenshotMap> {
+  const map: ScreenshotMap = {};
+  for (const participant of project.participants) {
+    if (participantId && participant.id !== participantId) continue;
+    for (const finding of participant.session?.findings ?? []) {
+      if (!finding.screenshotPath) continue;
+      const ext = finding.screenshotPath.split(".").pop()?.toLowerCase() ?? "";
+      const [embedded] = await embedEvidenceForReport([
+        { fileName: finding.screenshotName ?? "captura", type: "IMAGE", mimeType: IMAGE_MIME[ext] ?? "image/png", storagePath: finding.screenshotPath },
+      ]);
+      map[finding.id] = embedded?.dataUri ?? null;
+    }
+  }
+  return map;
 }
 
 function pdfResponse(buffer: Buffer, filename: string) {
@@ -85,6 +106,62 @@ export async function GET(request: Request, { params }: Params) {
         "Content-Disposition": `attachment; filename="${base}-ejecuciones.csv"`,
       },
     });
+  }
+
+  if (doc === "findings-csv") {
+    const header = ["Participante", "Tipo", "Escenario", "Tiempo en la grabación", "Título o etiqueta", "Observación", "Recomendación", "Captura", "Grabación"];
+    const scenarioLabel = (id: string | null) => {
+      const scenario = project.scenarios.find((item) => item.id === id);
+      return scenario ? `${scenario.code} ${scenario.title}` : "Toda la sesión";
+    };
+    const rows: string[][] = [];
+    for (const participant of project.participants) {
+      const session = participant.session;
+      for (const finding of session?.findings ?? []) {
+        rows.push(
+          [
+            participant.code, "Hallazgo", scenarioLabel(finding.scenarioId),
+            finding.recordingOffsetSeconds !== null ? formatSeconds(finding.recordingOffsetSeconds) : "",
+            finding.title, finding.observation, finding.recommendation ?? "", finding.screenshotName ?? "", session?.recordingUrl ?? "",
+          ].map((cell) => csvCell(cell)),
+        );
+      }
+      for (const marker of session?.markers ?? []) {
+        rows.push(
+          [
+            participant.code, "Marcador", scenarioLabel(marker.scenarioId), formatSeconds(marker.offsetSeconds),
+            marker.label, marker.notes ?? "", "", "", session?.recordingUrl ?? "",
+          ].map((cell) => csvCell(cell)),
+        );
+      }
+    }
+    const csv = "\uFEFF" + [header.map(csvCell).join(","), ...rows.map((row) => row.join(","))].join("\r\n");
+    return new NextResponse(csv, {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${base}-hallazgos-y-marcadores.csv"`,
+      },
+    });
+  }
+
+  if (doc === "executive") {
+    return pdfResponse(
+      await renderToBuffer(<ExecutiveReportDocument project={project} screenshots={await embedScreenshots(project)} />),
+      `${base}-informe-ejecutivo.pdf`,
+    );
+  }
+
+  if (doc === "findings") {
+    const participantId = url.searchParams.get("participant");
+    if (!participantId || !project.participants.some((participant) => participant.id === participantId)) {
+      return NextResponse.json({ error: "Indica el participante (?participant=)" }, { status: 400 });
+    }
+    return pdfResponse(
+      await renderToBuffer(
+        <SessionFindingsDocument project={project} participantId={participantId} screenshots={await embedScreenshots(project, participantId)} />,
+      ),
+      `${base}-hallazgos-${slug(project.participants.find((participant) => participant.id === participantId)?.code ?? "sesion")}.pdf`,
+    );
   }
 
   if (doc === "guide") return pdfResponse(await renderToBuffer(<GuideDocument project={project} />), `${base}-documento-guia.pdf`);

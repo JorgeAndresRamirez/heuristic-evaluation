@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -37,6 +37,19 @@ export function ProjectsDashboard({
 }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
+  // `router.refresh()` entrega nuevas `initialProjects`, pero el estado inicial no se actualiza solo: sin esto la copia
+  // creada no aparecía y parecía que el botón no hacía nada.
+  const [seenProjects, setSeenProjects] = useState(initialProjects);
+  if (seenProjects !== initialProjects) {
+    setSeenProjects(initialProjects);
+    setProjects(initialProjects);
+  }
+  /** Acción en curso por proyecto (duplicar o exportar): bloquea el botón para no repetirla y muestra el avance. */
+  const [busy, setBusy] = useState<{ id: string; action: "clone" | "export" } | null>(null);
+  // El estado se actualiza al renderizar: un doble clic rápido llegaba dos veces antes de bloquear el botón. La referencia
+  // se marca en el acto y evita la segunda petición.
+  const working = useRef(false);
+  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<{
@@ -77,21 +90,47 @@ export function ProjectsDashboard({
   }
 
   async function cloneProject(id: string) {
-    const response = await fetch(`/api/projects/${id}/clone`, { method: "POST" });
-    if (!response.ok) return;
-    router.refresh();
+    if (working.current) return;
+    working.current = true;
+    setBusy({ id, action: "clone" });
+    setNotice(null);
+    try {
+      const response = await fetch(`/api/projects/${id}/clone`, { method: "POST" });
+      if (!response.ok) throw new Error("clone");
+      const copy = await response.json();
+      setNotice({ tone: "ok", text: `Copia creada: «${copy.name}». Está al inicio de la lista.` });
+      router.refresh();
+    } catch {
+      setNotice({ tone: "error", text: "No se pudo duplicar el proyecto. Inténtalo de nuevo." });
+    } finally {
+      working.current = false;
+      setBusy(null);
+    }
   }
 
   async function exportProject(id: string, name: string) {
-    const response = await fetch(`/api/projects/${id}/export`);
-    const payload = await response.json();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${name.replace(/\s+/g, "-")}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    if (working.current) return;
+    working.current = true;
+    setBusy({ id, action: "export" });
+    setNotice(null);
+    try {
+      const response = await fetch(`/api/projects/${id}/export`);
+      if (!response.ok) throw new Error("export");
+      const payload = await response.json();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${name.replace(/\s+/g, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setNotice({ tone: "ok", text: `Exportado: ${anchor.download}.` });
+    } catch {
+      setNotice({ tone: "error", text: "No se pudo exportar el proyecto." });
+    } finally {
+      working.current = false;
+      setBusy(null);
+    }
   }
 
   return (
@@ -199,6 +238,18 @@ export function ProjectsDashboard({
         </Card>
       )}
 
+      {notice && (
+        <p
+          role="status"
+          className={cn(
+            "rounded-lg border px-4 py-3 text-sm",
+            notice.tone === "ok" ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-red-300 bg-red-50 text-red-900",
+          )}
+        >
+          {notice.text}
+        </p>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {projects.map((project) => (
           <Card key={project.id} className="border-border/80 shadow-sm">
@@ -229,11 +280,11 @@ export function ProjectsDashboard({
                 >
                   Abrir
                 </Link>
-                <Button variant="outline" onClick={() => cloneProject(project.id)}>
-                  Duplicar
+                <Button variant="outline" onClick={() => cloneProject(project.id)} disabled={busy !== null}>
+                  {busy?.id === project.id && busy.action === "clone" ? "Duplicando…" : "Duplicar"}
                 </Button>
-                <Button variant="outline" onClick={() => exportProject(project.id, project.name)}>
-                  Exportar
+                <Button variant="outline" onClick={() => exportProject(project.id, project.name)} disabled={busy !== null}>
+                  {busy?.id === project.id && busy.action === "export" ? "Exportando…" : "Exportar"}
                 </Button>
                 <Button variant="destructive" onClick={() => deleteProject(project.id)}>
                   Eliminar

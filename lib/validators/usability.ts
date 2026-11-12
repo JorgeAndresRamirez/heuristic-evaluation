@@ -99,3 +99,30 @@ export const usabilityIssueSchema = z.object({
   principleIds: z.array(z.string()).min(1, "Indica qué principio de usabilidad se vulnera"),
   runIds: z.array(z.string()).optional(),
 });
+
+// ─── Síntesis de la sesión: grabación, marcadores y hallazgos ─────────────────────────────────────
+
+export const recordingSchema = z.object({
+  recordingUrl: z
+    .string()
+    .trim()
+    .refine((value) => value === "" || /^https?:\/\//i.test(value), "El enlace debe empezar por http:// o https://")
+    .optional()
+    .nullable(),
+  recordingNotes: optionalText,
+});
+
+export const markerSchema = z.object({
+  label: z.string().trim().min(1, "Escribe qué ocurrió en ese momento"),
+  notes: optionalText,
+  offsetSeconds: z.number().int().min(0).max(24 * 3600),
+  scenarioId: z.string().nullable().optional(),
+});
+
+export const sessionFindingSchema = z.object({
+  title: z.string().trim().min(1, "El título del hallazgo es obligatorio"),
+  observation: z.string().trim().min(1, "Describe lo observado (hechos, no interpretaciones)"),
+  recommendation: optionalText,
+  recordingOffsetSeconds: z.number().int().min(0).max(24 * 3600).nullable().optional(),
+  scenarioId: z.string().nullable().optional(),
+});

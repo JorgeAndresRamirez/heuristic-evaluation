@@ -15,12 +15,14 @@ import { formatSeconds, severityRank } from "@/lib/usability-test";
 import { cn } from "@/lib/utils";
 
 const downloads = [
-  { doc: "report", label: "Informe de resultados (PDF)", variant: "default" as const },
+  { doc: "executive", label: "Informe ejecutivo (PDF)", variant: "default" as const },
+  { doc: "report", label: "Informe de resultados (PDF)", variant: "outline" as const },
   { doc: "guide", label: "Documento-guía (PDF)", variant: "outline" as const },
   { doc: "cards", label: "Tarjetas-escenario (PDF)", variant: "outline" as const },
   { doc: "observation", label: "Hoja de observación (PDF)", variant: "outline" as const },
   { doc: "consent", label: "Consentimiento, borrador (PDF)", variant: "outline" as const },
   { doc: "csv", label: "Ejecuciones (CSV)", variant: "outline" as const },
+  { doc: "findings-csv", label: "Hallazgos y marcadores (CSV)", variant: "outline" as const },
 ];
 
 export function TestReportView({ project }: { project: UsabilityProject }) {
@@ -71,6 +73,8 @@ export function TestReportView({ project }: { project: UsabilityProject }) {
           escenario o creyó haberlo completado. Un problema que impide completar un escenario es siempre grave.
         </Notice>
       )}
+
+      <ExecutiveOverview summary={summary} />
 
       <Card>
         <CardHeader>
@@ -151,6 +155,8 @@ export function TestReportView({ project }: { project: UsabilityProject }) {
         </CardContent>
       </Card>
 
+      <SessionFindingsSection project={project} />
+
       <Card>
         <CardHeader>
           <CardTitle>Problemas y recomendaciones</CardTitle>
@@ -179,5 +185,190 @@ export function TestReportView({ project }: { project: UsabilityProject }) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function Kpi({ label, value, hint, tone }: { label: string; value: string; hint: string; tone?: "good" | "bad" | "neutral" }) {
+  return (
+    <div className="rounded-xl border border-border p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p
+        className={cn(
+          "font-display mt-1 text-3xl font-semibold tabular-nums",
+          tone === "good" && "text-emerald-700",
+          tone === "bad" && "text-red-700",
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
+/** Indicadores para decidir y comparación visual por escenario (sin dependencias de gráficos: barras accesibles). */
+function ExecutiveOverview({ summary }: { summary: ReturnType<typeof computeUsabilitySummary> }) {
+  const { kpis } = summary;
+  const pct = (value: number | null) => (value === null ? "—" : `${value} %`);
+  const scenarios = summary.scenarioMetrics.filter(({ metrics }) => metrics.attempted > 0);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Resumen para decidir</CardTitle>
+        <CardDescription>
+          {kpis.runs} ejecuciones de participantes reales (sin pilotos). Efectividad = completaron; éxito limpio = completaron sin
+          errores, sin falso final y sin llegar al límite.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Kpi
+            label="Efectividad"
+            value={pct(kpis.effectiveness)}
+            hint="Ejecuciones completadas"
+            tone={kpis.effectiveness !== null && kpis.effectiveness >= 80 ? "good" : "neutral"}
+          />
+          <Kpi
+            label="Éxito limpio"
+            value={pct(kpis.cleanSuccess)}
+            hint="Sin tropiezos"
+            tone={kpis.cleanSuccess !== null && kpis.cleanSuccess >= 70 ? "good" : "neutral"}
+          />
+          <Kpi
+            label="Brecha de recuperación"
+            value={kpis.recoveryGap === null ? "—" : `${kpis.recoveryGap} pts`}
+            hint="Logrado a costa de errores"
+            tone={kpis.recoveryGap !== null && kpis.recoveryGap >= 20 ? "bad" : "neutral"}
+          />
+          <Kpi
+            label="Errores críticos"
+            value={String(kpis.criticalRuns)}
+            hint={`${kpis.falseCompletions} con falso final · tiempo mediano ${formatSeconds(kpis.medianTime)}`}
+            tone={kpis.criticalRuns > 0 ? "bad" : "good"}
+          />
+        </div>
+
+        {scenarios.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold">Efectividad por escenario</h3>
+            <ul className="mt-3 space-y-2" aria-label="Efectividad por escenario">
+              {scenarios.map(({ scenario, metrics }) => (
+                <li key={scenario.id} className="grid items-center gap-3 sm:grid-cols-[16rem_1fr_11rem]">
+                  <span className="truncate text-sm" title={`${scenario.code} · ${scenario.title}`}>
+                    {scenario.code} · {scenario.title}
+                  </span>
+                  <div className="h-3 overflow-hidden rounded-full bg-muted" role="img" aria-label={`${metrics.completionRate} % completaron`}>
+                    <div
+                      className={cn(
+                        "h-full rounded-full",
+                        (metrics.completionRate ?? 0) >= 80 ? "bg-emerald-600" : (metrics.completionRate ?? 0) >= 50 ? "bg-amber-500" : "bg-red-600",
+                      )}
+                      style={{ width: `${metrics.completionRate ?? 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {metrics.completionRate} % · {metrics.criticalErrors} crít. · {metrics.nonCriticalErrors} no crít.
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Hallazgos curados por sesión: lo que se aprendió de cada participante, con captura y enlace a la grabación. */
+function SessionFindingsSection({ project }: { project: UsabilityProject }) {
+  const withFindings = project.participants.filter(
+    (participant) => (participant.session?.findings.length ?? 0) > 0 || (participant.session?.markers.length ?? 0) > 0,
+  );
+  const scenarioLabel = (id: string | null) => {
+    const scenario = project.scenarios.find((item) => item.id === id);
+    return scenario ? `${scenario.code} · ${scenario.title}` : "Toda la sesión";
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Hallazgos de las sesiones</CardTitle>
+        <CardDescription>
+          Lo registrado en la síntesis de cada sesión: observaciones, recomendaciones, capturas y momentos de la grabación.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {withFindings.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Aún no hay hallazgos de sesión. Se registran en «Síntesis de la sesión», desde cada sesión.
+          </p>
+        )}
+        {withFindings.map((participant) => {
+          const session = participant.session!;
+          return (
+            <section key={participant.id} className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-semibold">
+                  {participant.code}
+                  {participant.isPilot ? " (piloto)" : ""}
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">{participant.profile}</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {session.recordingUrl && (
+                    <a href={session.recordingUrl} target="_blank" rel="noreferrer" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                      Ver grabación
+                    </a>
+                  )}
+                  {session.findings.length > 0 && (
+                    <a
+                      href={`/api/projects/${project.id}/test-report?doc=findings&participant=${participant.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    >
+                      Hallazgos en PDF
+                    </a>
+                  )}
+                </div>
+              </div>
+              {session.findings.map((finding) => (
+                <div key={finding.id} className="space-y-2 rounded-lg border border-border p-4">
+                  <p className="font-medium">{finding.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {scenarioLabel(finding.scenarioId)}
+                    {finding.recordingOffsetSeconds !== null ? ` · grabación ${formatSeconds(finding.recordingOffsetSeconds)}` : ""}
+                  </p>
+                  <p className="whitespace-pre-line text-sm">{finding.observation}</p>
+                  {finding.recommendation && (
+                    <p className="whitespace-pre-line rounded-lg bg-emerald-50/70 p-3 text-sm">
+                      <strong>Recomendación:</strong> {finding.recommendation}
+                    </p>
+                  )}
+                  {finding.screenshotPath && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`/api/evidence/${finding.screenshotPath}`}
+                      alt={`Captura del hallazgo «${finding.title}»`}
+                      className="max-h-64 rounded-lg border border-border"
+                    />
+                  )}
+                </div>
+              ))}
+              {session.markers.length > 0 && (
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {session.markers.map((marker) => (
+                    <li key={marker.id}>
+                      <span className="font-mono tabular-nums text-foreground">{formatSeconds(marker.offsetSeconds)}</span> · {marker.label} ·{" "}
+                      {scenarioLabel(marker.scenarioId)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }

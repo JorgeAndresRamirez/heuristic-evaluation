@@ -41,6 +41,14 @@ export default async function SessionPage({ params }: Params) {
           finalQuestionsNotes: session?.finalQuestionsNotes ?? "",
         }}
         satisfactionScale={project.testPlan?.satisfactionScale || DEFAULT_SATISFACTION_SCALE}
+        welcomeEnabled={project.testPlan?.welcomeEnabled ?? true}
+        screen={{
+          token: participant.presentationToken,
+          sessionId: session?.id ?? null,
+          phase: session?.phase ?? "NOT_STARTED",
+          currentScenarioId: session?.currentScenarioId ?? null,
+          startedAt: session?.startedAt ? session.startedAt.toISOString() : null,
+        }}
         scenarios={scenariosForProfile(project.scenarios, participant.profile).map((scenario) => {
           const run = session?.runs.find((item) => item.scenarioId === scenario.id);
           return {

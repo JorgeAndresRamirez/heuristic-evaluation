@@ -15,6 +15,7 @@ const sections = [
   { href: "/plan", label: "Documento-guía" },
   { href: "/scenarios", label: "Escenarios" },
   { href: "/participants", label: "Participantes" },
+  { href: "/participant-screen", label: "Pantalla del participante" },
   { href: "/issues", label: "Problemas" },
   { href: "/test-report", label: "Informe" },
 ];

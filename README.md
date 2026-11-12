@@ -3,7 +3,7 @@
 Herramienta **100% local** para **planificar, ejecutar, consolidar y documentar** dos técnicas complementarias:
 
 - **Evaluación heurística** (con expertos): sets de heurísticas, hallazgos con evidencia multimedia, consolidación de varios evaluadores y reportes.
-- **Test de usabilidad** (con usuarios): documento-guía, escenarios no dirigidos, participantes, sesión del facilitador con cronómetro, errores críticos y no críticos, problemas con gravedad y recomendaciones, e informe con la estructura del documento-tipo del Máster. **Nuevo.**
+- **Test de usabilidad** (con usuarios): documento-guía, escenarios no dirigidos, participantes, **pantalla del participante** (bienvenida y una situación a la vez, para compartir en la videollamada), sesión del facilitador con cronómetro, errores críticos y no críticos, síntesis con grabación, marcadores y hallazgos con captura, problemas con gravedad y recomendaciones, e informes (ejecutivo y con la estructura del documento-tipo del Máster).
 
 El test de usabilidad no sustituye a la evaluación heurística: la complementa. Fundamento y trazabilidad con el material del Máster en [docs/FundamentoMetodologico.md](docs/FundamentoMetodologico.md).
 
@@ -97,11 +97,13 @@ Se crea un proyecto con la técnica **Test de usabilidad** y se trabaja por secc
 | **Documento-guía** | Los apartados del documento-tipo: identificación, presentación, resumen ejecutivo, metodología, aspectos éticos y legales. Lista lo que falta del planteamiento mínimo y avisa de criterios de elegibilidad sociodemográficos |
 | **Escenarios** | Rol o perfil, objetivo del usuario, punto de partida, tiempo límite (solo del facilitador), hito de finalización y **tarjeta-escenario**. Revisa la tarjeta en vivo: detecta la palabra «tarea», escenarios dirigidos (pasos, menús, botones) e informar del tiempo |
 | **Participantes** | Códigos (P1…), perfil (lista con los roles de los escenarios), elegibilidad, consentimiento, autorización de grabación, piloto y reserva. Guía de cuántos participantes se necesitan (5 por rol si hay varios roles) y avance «X de N escenarios» según su rol |
-| **Sesión** | Modo facilitador: solo los escenarios del rol del participante, tarjeta visible, cronómetro (ToT), resultado según el hito, «falso final» como error crítico, errores no críticos, pensamientos en voz alta y satisfacción 1–10. Preguntas finales al terminar |
+| **Pantalla del participante** | Bienvenida y cierre parametrizables (título, texto enriquecido, mensaje de despedida) con vista previa. Es lo primero y lo último que ve el participante en su pantalla |
+| **Sesión** | Modo facilitador con **pantalla del participante** en una pestaña aparte (`/p/<enlace>`, es la que se comparte en la videollamada: bienvenida, una situación a la vez, pausa y cierre, controlados desde la ventana del facilitador) y marcadores de momento en vivo. Solo los escenarios del rol del participante, tarjeta visible, cronómetro (ToT), resultado según el hito, «falso final» como error crítico, errores no críticos, pensamientos en voz alta y satisfacción 1–10. Preguntas finales al terminar |
+| **Síntesis de la sesión** | Tras la sesión: enlace de la grabación (Meet, Loom, Drive…), marcadores de tiempo sobre ella y hallazgos con captura de pantalla, recomendación y momento en la grabación. PDF de hallazgos por participante |
 | **Problemas** | Hechos observados, principio de usabilidad vulnerado, tipo de error (crítico / no crítico), impacto, frecuencia y persistencia, gravedad (muy leve, leve, grave) con sugerencia, recomendación y capturas |
-| **Informe** | Efectividad, eficiencia y satisfacción (ISO 9241-11) por escenario; resultado por participante; problemas por gravedad; descargas |
+| **Informe** | Resumen para decidir (efectividad, éxito limpio, brecha de recuperación, errores críticos) con barras por escenario; efectividad, eficiencia y satisfacción (ISO 9241-11) por escenario; resultado por participante; problemas por gravedad; descargas |
 
-Descargas (PDF): informe de resultados, documento-guía, **tarjetas-escenario** para el participante, hoja de observación en blanco y consentimiento (borrador); CSV de ejecuciones. Si los escenarios tienen **rol**, el informe añade una hoja del observador y unas tarjetas por rol (`?doc=observation&role=…` y `?doc=cards&role=…`), para que cada observador y cada participante reciba solo lo suyo.
+Descargas (PDF): informe de resultados, documento-guía, **tarjetas-escenario** para el participante, hoja de observación en blanco y consentimiento (borrador); **informe ejecutivo** (2 páginas orientadas a decidir) y **hallazgos de una sesión** con capturas; CSV de ejecuciones y de hallazgos y marcadores. Si los escenarios tienen **rol**, el informe añade una hoja del observador y unas tarjetas por rol (`?doc=observation&role=…` y `?doc=cards&role=…`), para que cada observador y cada participante reciba solo lo suyo.
 
 **Pruebas con varios roles:** el campo «Rol o perfil» del escenario agrupa los escenarios por rol. Con dos o más roles, la sesión filtra los escenarios por el perfil del participante (un perfil que no coincide con ningún rol muestra todos, para no ocultar nada), la meta de participantes es por rol y el tope de escenarios se mide por rol. La lógica pura está en `lib/usability-test.ts` (`scenarioRoles`, `scenariosForProfile`, `roleParticipantGuidance`, `scenarioCountGuidanceByRole`) con pruebas en `lib/usability-test.test.ts`.
 
@@ -228,7 +230,8 @@ heuristic-evaluation/
 ├── components/
 │   ├── heuristics/            # Gestión de sets y configuraciones
 │   ├── evaluation/            # Proyectos e inspección
-│   ├── usability/             # Test de usabilidad: plan, escenarios, participantes, sesión, problemas, informe
+│   ├── usability/             # Test de usabilidad: plan, escenarios, participantes, sesión, síntesis, problemas, informe
+│   ├── participant/           # Pantalla del participante (/p/<enlace>)
 │   ├── consolidation/         # Panel de fusión
 │   ├── reports/               # Gráficos y exportación
 │   ├── layout/                # Shell de navegación
@@ -243,6 +246,8 @@ heuristic-evaluation/
 │   ├── report-builder.ts      # HTML y analítica
 │   ├── usability-test.ts      # Lógica pura del test de usabilidad (con .test.ts)
 │   ├── usability-data.ts      # Carga y resumen del test de usabilidad
+│   ├── participant-screen.ts  # Qué ve el participante según la fase de la sesión (lógica pura)
+│   ├── usability-transfer.ts  # Exportar/importar un test completo entre equipos
 │   ├── pdf/                   # Documentos PDF
 │   ├── storage.ts             # Evidencias locales
 │   └── validators/            # Esquemas Zod
@@ -271,7 +276,9 @@ heuristic-evaluation/
 | Consolidación | `/projects/[projectId]/consolidation` |
 | Reportes | `/projects/[projectId]/reports` |
 | Test de usabilidad: resumen, documento-guía, escenarios, participantes, problemas, informe | `/projects/[projectId]`, `/plan`, `/scenarios`, `/participants`, `/issues`, `/test-report` |
-| Test de usabilidad: sesión del facilitador | `/projects/[projectId]/sessions/[participantId]` |
+| Test de usabilidad: pantalla del participante (configuración) | `/projects/[projectId]/participant-screen` |
+| Test de usabilidad: sesión del facilitador y su síntesis | `/projects/[projectId]/sessions/[participantId]`, `/synthesis` |
+| Pantalla del participante (la que se comparte; sin menús, enlace secreto por participante) | `/p/[token]` |
 | Test de usabilidad: documentos | `/api/projects/[projectId]/test-report?doc=report\|guide\|cards\|consent\|observation\|csv` (`cards` y `observation` aceptan `&role=<rol>`) |
 
 ---
@@ -293,6 +300,8 @@ Los archivos en `storage/` no se versionan en git.
 ---
 
 ## Formato de exportación JSON
+
+Un **test de usabilidad** se exporta completo: además del plan y los escenarios, una copia portátil (`data.transfer`) de participantes, sesiones, ejecuciones, marcadores, hallazgos con sus capturas (en base64) y problemas con sus evidencias de imagen. Al importarlo en otro equipo se enlazan por código de escenario y de participante (no por identificadores de la base de origen) y el set de heurísticas se busca por nombre: la base de destino debe tener los sets (`npm run db:seed`). Las imágenes de más de 8 MB y los vídeos no viajan dentro del JSON: se listan en `transfer.skippedFiles`. El proyecto importado se llama «… (importado)».
 
 ```json
 {
@@ -322,6 +331,10 @@ El servidor de desarrollo puede cachear un cliente Prisma antiguo. Reinicia:
 # Ctrl+C para detener, luego:
 npm run dev
 ```
+
+### Base de datos existente tras actualizar el código
+
+Si ya tenías una base creada y actualizas el código, aplica el esquema con `npm run db:push -- --accept-data-loss`. El aviso de «pérdida de datos» es solo por la nueva restricción de unicidad del enlace del participante (columna vacía en las filas existentes): no borra nada.
 
 ### Base de datos vacía
 

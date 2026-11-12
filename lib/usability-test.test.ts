@@ -8,11 +8,15 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { buildPresentation, phaseForAction } from "./participant-screen";
+import { generatePresentationToken } from "./presentation-token";
 import {
   analyzeScenarioCard,
+  buildExecutiveKpis,
   buildScenarioMetrics,
   eligibilityWarnings,
   formatSeconds,
+  parseTimecode,
   participantGuidance,
   planCompleteness,
   roleParticipantGuidance,
@@ -194,5 +198,96 @@ describe("pruebas con varios roles", () => {
     const many = [...Array(9).keys()].map((i) => ({ role: "T", i })).concat([{ role: "S", i: 0 }]);
     assert.equal(scenarioCountGuidanceByRole(many)?.level, "info");
     assert.equal(scenarioCountGuidanceByRole(Array.from({ length: 8 }, () => ({ role: null })))?.level, "warning");
+  });
+});
+
+describe("pantalla del participante", () => {
+  const settings = { welcomeEnabled: true, welcomeTitle: null, welcomeHtml: null, closingMessage: null };
+  const scenarios = [
+    { id: "a", scenarioCard: "Tarjeta A" },
+    { id: "b", scenarioCard: "Tarjeta B" },
+  ];
+  const base = { productName: "GOM", settings, scenarios, currentScenarioId: null };
+
+  it("antes de empezar no muestra nada y usa bienvenida por defecto", () => {
+    assert.equal(buildPresentation({ ...base, phase: "NOT_STARTED" }).state, "idle");
+    const welcome = buildPresentation({ ...base, phase: "WELCOME" });
+    assert.equal(welcome.state, "welcome");
+    assert.equal(welcome.welcome?.title, "Antes de comenzar");
+  });
+
+  it("muestra solo la tarjeta y la posición del escenario en curso, sin datos internos", () => {
+    const shown = buildPresentation({ ...base, phase: "SCENARIO", currentScenarioId: "b" });
+    assert.equal(shown.state, "scenario");
+    assert.deepEqual(shown.scenario, { label: "Situación 2 de 2", card: "Tarjeta B", position: 2, total: 2 });
+    const text = JSON.stringify(shown).toLowerCase();
+    assert.ok(!text.includes("tarea") && !text.includes("límite") && !text.includes("hito"));
+  });
+
+  it("si la bienvenida está desactivada o el escenario no existe, muestra la pausa", () => {
+    assert.equal(buildPresentation({ ...base, settings: { ...settings, welcomeEnabled: false }, phase: "WELCOME" }).state, "between");
+    assert.equal(buildPresentation({ ...base, phase: "SCENARIO", currentScenarioId: "zzz" }).state, "between");
+  });
+
+  it("al terminar muestra el cierre configurado o el de por defecto", () => {
+    assert.match(buildPresentation({ ...base, phase: "FINISHED" }).closing ?? "", /Gracias/);
+    const custom = buildPresentation({ ...base, settings: { ...settings, closingMessage: "Hasta pronto" }, phase: "FINISHED" });
+    assert.equal(custom.closing, "Hasta pronto");
+  });
+
+  it("genera tokens largos y distintos, y la acción decide la fase", () => {
+    const a = generatePresentationToken();
+    assert.ok(a.length >= 20 && a !== generatePresentationToken());
+    assert.equal(phaseForAction({ action: "scenario", scenarioId: "a" }), "SCENARIO");
+    assert.equal(phaseForAction({ action: "open" }), null);
+  });
+});
+
+describe("parseTimecode", () => {
+  it("convierte m:ss, h:mm:ss y segundos sueltos", () => {
+    assert.equal(parseTimecode("3:12"), 192);
+    assert.equal(parseTimecode("1:02:03"), 3723);
+    assert.equal(parseTimecode("45"), 45);
+    assert.equal(parseTimecode(" 0:05 "), 5);
+  });
+  it("rechaza lo que no es un tiempo", () => {
+    assert.equal(parseTimecode(""), null);
+    assert.equal(parseTimecode("3:75"), null);
+    assert.equal(parseTimecode("abc"), null);
+  });
+});
+
+describe("buildExecutiveKpis", () => {
+  const run = (over: Partial<RunMetricInput>): RunMetricInput => ({
+    participantId: "p",
+    outcome: "COMPLETED",
+    falseCompletion: false,
+    stoppedAtLimit: false,
+    timeOnTaskSeconds: 60,
+    nonCriticalErrors: 0,
+    satisfaction: null,
+    ...over,
+  });
+
+  it("separa el éxito limpio de lo logrado con tropiezos", () => {
+    const kpis = buildExecutiveKpis([
+      run({}),
+      run({ nonCriticalErrors: 2 }),
+      run({ outcome: "NOT_COMPLETED", timeOnTaskSeconds: null }),
+      run({ outcome: "NOT_COMPLETED", falseCompletion: true, timeOnTaskSeconds: null }),
+    ]);
+    assert.equal(kpis.runs, 4);
+    assert.equal(kpis.effectiveness, 50);
+    assert.equal(kpis.cleanSuccess, 25);
+    assert.equal(kpis.recoveryGap, 25);
+    assert.equal(kpis.criticalRuns, 2);
+    assert.equal(kpis.falseCompletions, 1);
+  });
+
+  it("sin ejecuciones no inventa cifras", () => {
+    const kpis = buildExecutiveKpis([]);
+    assert.equal(kpis.effectiveness, null);
+    assert.equal(kpis.recoveryGap, null);
+    assert.equal(kpis.medianTime, null);
   });
 });

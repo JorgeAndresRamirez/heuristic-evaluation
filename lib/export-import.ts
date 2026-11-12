@@ -3,6 +3,7 @@
  * Jorge Andrés Ramírez Sierra, Ingeniero de Software - Máster en Diseño de Experiencia de Usuario
  */
 
+import { buildUsabilityTransfer } from "@/lib/usability-transfer";
 import { EXPORT_FORMAT, EXPORT_VERSION } from "@/lib/constants";
 import { findingPrinciplesInclude, getFindingPrincipleTitles } from "@/lib/finding-principles";
 import { prisma } from "@/lib/prisma";
@@ -82,12 +83,16 @@ export async function exportProject(projectId: string) {
     },
   });
 
+  // Un test de usabilidad viaja completo: además de lo anterior, una copia portátil (sin ids de la base de origen)
+  // de participantes, sesiones, hallazgos con capturas y problemas, para continuar en otro equipo.
+  const transfer = project.kind === "USABILITY_TEST" ? await buildUsabilityTransfer(projectId) : undefined;
+
   return {
     format: EXPORT_FORMAT,
     version: EXPORT_VERSION,
     type: "project",
     exportedAt: new Date().toISOString(),
-    data: project,
+    data: transfer ? { ...project, transfer } : project,
   };
 }
 

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Field, Notice } from "@/components/usability/fields";
+import { ScreenControl, type ScreenCommand, type ScreenState } from "@/components/usability/screen-control";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/input";
@@ -51,10 +52,18 @@ function RunCard({
   participantId,
   scenario,
   satisfactionScale,
+  onShow,
+  onSaved,
+  shownToParticipant,
 }: {
   participantId: string;
   scenario: SessionScenario;
   satisfactionScale: string;
+  /** Muestra este escenario en la pantalla del participante. */
+  onShow: (scenarioId: string) => void;
+  /** Se llama al guardar: la pantalla del participante pasa a la pausa. */
+  onSaved: () => void;
+  shownToParticipant: boolean;
 }) {
   const router = useRouter();
   const [run, setRun] = useState<RunState>(scenario.run ?? emptyRun);
@@ -97,14 +106,24 @@ function RunCard({
     }
     setRun((current) => ({ ...current, ...payload, outcome: payload.falseCompletion ? "NOT_COMPLETED" : payload.outcome }));
     setMessage({ tone: "ok", text: "Escenario guardado." });
+    onSaved();
     router.refresh();
   }
 
   return (
-    <Card>
+    <Card className={cn(shownToParticipant && "ring-2 ring-primary")}>
       <CardHeader>
-        <CardTitle>
-          {scenario.code} · {scenario.title}
+        <CardTitle className="flex flex-wrap items-center gap-3">
+          <span>
+            {scenario.code} · {scenario.title}
+          </span>
+          {shownToParticipant ? (
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">Lo ve el participante</span>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => onShow(scenario.id)}>
+              Mostrar al participante
+            </Button>
+          )}
         </CardTitle>
         <CardDescription>
           Punto de partida: {scenario.startingPoint} · Límite interno: {scenario.timeLimitMinutes} min · Hito: {scenario.completionMilestone}
@@ -127,7 +146,15 @@ function RunCard({
             {formatSeconds(elapsed)}
           </p>
           {!running ? (
-            <Button onClick={() => setRunning(true)}>{elapsed > 0 ? "Reanudar" : "Iniciar"}</Button>
+            <Button
+              onClick={() => {
+                // Iniciar el cronómetro también muestra la tarjeta al participante (si aún no la ve).
+                if (!shownToParticipant) onShow(scenario.id);
+                setRunning(true);
+              }}
+            >
+              {elapsed > 0 ? "Reanudar" : "Iniciar"}
+            </Button>
           ) : (
             <Button variant="outline" onClick={stopTimer}>
               Detener
@@ -280,6 +307,8 @@ export function SessionWorkspace({
   session,
   scenarios,
   satisfactionScale,
+  screen: initialScreen,
+  welcomeEnabled,
 }: {
   projectId: string;
   participant: {
@@ -294,9 +323,33 @@ export function SessionWorkspace({
   session: { facilitatorId: string | null; sessionDate: string | null; notes: string; finalQuestionsNotes: string };
   scenarios: SessionScenario[];
   satisfactionScale: string;
+  screen: ScreenState;
+  welcomeEnabled: boolean;
 }) {
   const router = useRouter();
   const [meta, setMeta] = useState(session);
+  const [screen, setScreen] = useState<ScreenState>(initialScreen);
+
+  /** Envía una orden a la pantalla del participante y guarda el estado que devuelve el servidor. */
+  async function sendScreen(command: ScreenCommand): Promise<ScreenState | null> {
+    const response = await fetch(`/api/participants/${participant.id}/screen`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(command),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const next: ScreenState = {
+      token: data.token,
+      sessionId: data.sessionId,
+      phase: data.phase,
+      currentScenarioId: data.currentScenarioId,
+      startedAt: data.startedAt,
+    };
+    setScreen(next);
+    return next;
+  }
+  const shownScenario = scenarios.find((item) => item.id === screen.currentScenarioId);
   const [message, setMessage] = useState<string | null>(null);
 
   async function saveMeta() {
@@ -324,9 +377,17 @@ export function SessionWorkspace({
           </h2>
           <p className="text-sm text-muted-foreground">{participant.profile || "Sin perfil indicado"}</p>
         </div>
-        <Link href={`/projects/${projectId}/participants`} className={cn(buttonVariants({ variant: "outline" }))}>
-          Volver a participantes
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/projects/${projectId}/sessions/${participant.id}/synthesis`}
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            Síntesis de la sesión
+          </Link>
+          <Link href={`/projects/${projectId}/participants`} className={cn(buttonVariants({ variant: "outline" }))}>
+            Volver a participantes
+          </Link>
+        </div>
       </div>
 
       {!participant.consentSigned && (
@@ -343,6 +404,13 @@ export function SessionWorkspace({
         Lee el guion de apertura: se prueba el sistema, no a la persona. Pide que piense en voz alta. No guíes, no hagas
         preguntas durante la prueba (déjalas para el final) y no digas «tarea». No informes del tiempo límite.
       </Notice>
+
+      <ScreenControl
+        state={screen}
+        scenarioLabel={shownScenario?.code ?? null}
+        welcomeEnabled={welcomeEnabled}
+        send={sendScreen}
+      />
 
       <Card>
         <CardHeader>
@@ -389,6 +457,18 @@ export function SessionWorkspace({
           participantId={participant.id}
           scenario={scenario}
           satisfactionScale={satisfactionScale}
+          shownToParticipant={screen.phase === "SCENARIO" && screen.currentScenarioId === scenario.id}
+          onShow={(scenarioId) => {
+            if (!screen.token) {
+              // Aún no se abrió la pantalla: se prepara el enlace y el facilitador la abre desde el panel.
+              alert("Primero abre la pantalla del participante desde el panel de arriba.");
+              return;
+            }
+            sendScreen({ action: "scenario", scenarioId });
+          }}
+          onSaved={() => {
+            if (screen.token) sendScreen({ action: "pause" });
+          }}
         />
       ))}
 

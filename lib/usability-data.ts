@@ -6,6 +6,7 @@
 import { prisma } from "@/lib/prisma";
 import { issueInclude } from "@/lib/usability-queries";
 import {
+  buildExecutiveKpis,
   buildScenarioMetrics,
   participantGuidance,
   planCompleteness,
@@ -27,7 +28,14 @@ export async function loadUsabilityProject(projectId: string) {
       participants: {
         orderBy: { orderIndex: "asc" },
         include: {
-          session: { include: { facilitator: true, runs: true } },
+          session: {
+            include: {
+              facilitator: true,
+              runs: true,
+              markers: { orderBy: { offsetSeconds: "asc" } },
+              findings: { orderBy: { orderIndex: "asc" } },
+            },
+          },
         },
       },
       issues: { orderBy: { orderIndex: "asc" }, include: issueInclude },
@@ -133,7 +141,23 @@ export function computeUsabilitySummary(project: UsabilityProject) {
     },
   ];
 
+  const allRuns: RunMetricInput[] = [];
+  for (const participant of real) {
+    for (const run of participant.session?.runs ?? []) {
+      allRuns.push({
+        participantId: participant.id,
+        outcome: run.outcome,
+        falseCompletion: run.falseCompletion,
+        stoppedAtLimit: run.stoppedAtLimit,
+        timeOnTaskSeconds: run.timeOnTaskSeconds,
+        nonCriticalErrors: run.nonCriticalErrors,
+        satisfaction: run.satisfaction,
+      });
+    }
+  }
+
   return {
+    kpis: buildExecutiveKpis(allRuns),
     real,
     scenarioMetrics,
     completeness,
