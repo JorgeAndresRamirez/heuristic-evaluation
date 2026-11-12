@@ -79,7 +79,7 @@ const BLOCKS: SeedProject[] = [
         title: "Dar acceso al técnico responsable y a su laboratorista",
         userGoal: "Que quien configura el mantenimiento y quien lo ejecuta puedan entrar a GOM, cada uno con lo que le corresponde.",
         description:
-          "Ruta esperada: Seguridad › Usuarios › Nuevo, dos veces (persona, correo, contraseña temporal; rol TecnicoOperativo y rol Laboratorista; consultar Roles para entender qué permite cada uno). Depende de: las personas existen en SICAU. Deja listo: las cuentas que usan los escenarios E, O y L. Se envían correos de confirmación reales. Agrupa: alta de técnico + alta de laboratorista.",
+          "Ruta esperada: Seguridad › Usuarios › Nuevo, dos veces (persona —al elegirla se completa el correo institucional, que sigue editable—, contraseña temporal con el «ojo» para verla; rol TecnicoOperativo y rol Laboratorista; consultar Roles para entender qué permite cada uno). Depende de: las personas existen en SICAU. Deja listo: las cuentas que usan los escenarios E, O y L. Se envían correos de confirmación reales. Agrupa: alta de técnico + alta de laboratorista.",
         startingPoint: "Sesión iniciada como SoporteAdmin, en la pantalla de inicio.",
         timeLimitMinutes: 14,
         completionMilestone:
@@ -142,7 +142,7 @@ const BLOCKS: SeedProject[] = [
         title: "Dejar un bien de SEVEN como equipo de GOM",
         userGoal: "Poder dar mantenimiento a un bien que hoy solo existe en el inventario institucional.",
         description:
-          "Ruta esperada: Inventario › Bienes de SEVEN (filtrar y marcar como equipo) y su tipo de equipo para mantenimiento; si el tipo no existe, se crea desde ese mismo paso. Depende de: S1 y S2 y de un bien de SEVEN que aún no sea equipo. Deja listo: el equipo con su tipo, que usan E2 a E5. Riesgo conocido (L-03): el tipo se presenta como paso opcional.",
+          "Ruta esperada: Inventario › Bienes de SEVEN (filtrar, «Asignar como equipo» y su tipo de equipo para mantenimiento; si el tipo no existe, se crea desde ese mismo paso; «Editar» reabre el tipo y «Cambió en SEVEN» ofrece «Revisar cambios»). Tras crear el tipo, el aviso indica el orden: calificar la frecuencia y luego configurar el checklist. Depende de: S1 y S2 y de un bien de SEVEN que aún no sea equipo. Deja listo: el equipo con su tipo, que usan E2 a E5. Riesgo conocido (L-03): el tipo se presenta como paso opcional.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 10,
         completionMilestone:
@@ -155,7 +155,7 @@ const BLOCKS: SeedProject[] = [
         title: "Completar la ficha técnica del equipo",
         userGoal: "Que quien consulte el equipo encuentre su estado, sus partes y su documentación.",
         description:
-          "Ruta esperada: Inventario › Equipos › Editar (ficha técnica: estado y datos del equipo, pestaña de componentes técnicos con «Agregar componente», pestaña de documentos con carga de archivos, enlace externo o ficha técnica). Depende de: E1 (sin tipo de equipo la ficha no se puede guardar). Los componentes alimentan el hallazgo del laboratorista (L3). Los documentos se cargan con archivos reales del participante (PDF) o un enlace; no registrar documentos ajenos al piloto.",
+          "Ruta esperada: Inventario › Equipos › Editar (ficha técnica, con placa y nombre en una sola celda y el nombre del espacio bajo la ubicación: estado y datos del equipo, pestaña de componentes técnicos con «Agregar componente», pestaña de documentos con carga de archivos, enlace externo o ficha técnica). Depende de: E1 (sin tipo de equipo la ficha no se puede guardar). Los componentes alimentan el hallazgo del laboratorista (L3). Los documentos se cargan con archivos reales del participante (PDF) o un enlace; no registrar documentos ajenos al piloto.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 14,
         completionMilestone:
@@ -181,7 +181,7 @@ const BLOCKS: SeedProject[] = [
         title: "Crear las actividades y armar la rutina de revisión del tipo de equipo",
         userGoal: "Que quien dé mantenimiento a ese tipo de equipo vea exactamente qué debe revisar según la frecuencia que le toca.",
         description:
-          "Ruta esperada: Mantenimiento › Actividades › Nueva (nombre y detalles, varias) y luego Mantenimiento › Checklist (fila del tipo › Configurar o Editar › pestaña de la frecuencia › agregar o activar actividades › guardar). Depende de: E1 (tipo) y E3 (frecuencia). Deja listo: el checklist que copia el plan y que ve el laboratorista. El participante define las actividades con su conocimiento del equipo; el facilitador no las dicta. Agrupa: crear actividades + checklist.",
+          "Ruta esperada: Mantenimiento › Actividades › Nueva (nombre y detalles, varias) y luego Mantenimiento › Checklist (fila del tipo › Configurar o Editar › pestaña de la frecuencia › elegir una actividad y «Agregar», o «+ Crear actividad nueva…» sin salir del checklist › guardar). Las dos rutas son válidas: no se le indica cuál usar. Depende de: E1 (tipo) y E3 (frecuencia). Deja listo: el checklist que copia el plan y que ve el laboratorista. El participante define las actividades con su conocimiento del equipo; el facilitador no las dicta. Agrupa: crear actividades + checklist.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 16,
         completionMilestone:
@@ -228,16 +228,16 @@ const BLOCKS: SeedProject[] = [
       },
       {
         code: "O2",
-        title: "Registrar un mantenimiento realizado y un daño imprevisto",
+        title: "Registrar un mantenimiento realizado y atender un daño imprevisto",
         userGoal: "Dejar constancia de lo hecho y de un equipo dañado para que se repare.",
         description:
-          "Ruta esperada: Actividades › Registro de actividades (Mi trabajo › equipo › resolver cada actividad, una como «No aplica» › guardar) y Actividades › Mantenimientos no programados › Nuevo (equipo, tipo de mantenimiento, responsable). Depende de: plan del equipo (E5) y un segundo equipo en sus espacios. No registrar como hechas actividades que el participante no haya realizado en el piloto sin avisarlo. Deja listo: registros y un correctivo para A1. Agrupa: registro de actividades + no programado.",
+          "Ruta esperada: Actividades › Registro de actividades (Mi trabajo › equipo › resolver cada actividad, una como «No aplica» › guardar; con «x de y resueltas» y «Guardar avance y salir») y Actividades › Mantenimientos no programados y correctivos › Nuevo (equipo, tipo de mantenimiento, responsable) y luego «Registrar trabajo» (trabajo obligatorio, evidencia opcional PDF, JPG o PNG de hasta 10 MB; el correctivo pasa a Cerrado). Depende de: plan del equipo (E5) y un segundo equipo en sus espacios. Ventana de registro por frecuencia (mensual 7 días antes del vencimiento, semestral 15, anual 30; Admin y SoporteAdmin sin bloqueo): el facilitador comprueba que el equipo esté dentro de ella o el sistema no dejará registrar. No registrar como hechas actividades que el participante no haya realizado en el piloto sin avisarlo. Deja listo: registros y un correctivo para A1. Agrupa: registro de actividades + no programado.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
-        timeLimitMinutes: 16,
+        timeLimitMinutes: 20,
         completionMilestone:
-          "El registro del equipo queda guardado, con una actividad como «No aplica», y el mantenimiento no programado queda guardado y aparece en el listado.",
+          "El registro del equipo queda guardado, con una actividad como «No aplica», y el mantenimiento no programado queda guardado, con el trabajo realizado registrado, y aparece como Cerrado en el listado.",
         scenarioCard:
-          "Hoy hiciste el mantenimiento del equipo que preparaste. Todo estuvo en orden, salvo una actividad de la lista que no aplica a este equipo porque no tiene ese componente. Quieres dejar constancia de lo que hiciste. Al terminar, descubres que otro equipo de tu laboratorio dejó de funcionar y que no estaba programado para ninguna revisión: necesita que se repare y que quede constancia de lo ocurrido. Decides dejar ambas cosas en el sistema.",
+          "Hoy hiciste el mantenimiento del equipo que preparaste. Todo estuvo en orden, salvo una actividad de la lista que no aplica a este equipo porque no tiene ese componente. Quieres dejar constancia de lo que hiciste. Al terminar, descubres que otro equipo de tu laboratorio dejó de funcionar y que no estaba programado para ninguna revisión: necesita que se repare y que quede constancia de lo ocurrido. Ese mismo día lo reparas y quieres que quede constancia de lo que se hizo y de su evidencia. Decides dejar todo en el sistema.",
       },
     ],
   },
@@ -255,7 +255,7 @@ const BLOCKS: SeedProject[] = [
         title: "Dar cuenta de la gestión: histórico y reportes",
         userGoal: "Responder con datos qué se hizo, qué equipos hay y cuántos daños imprevistos ocurrieron.",
         description:
-          "Ruta esperada: Actividades › Histórico (periodo actual, bloque; filtros al instante; desplegar una visita), Reportes › Equipos (bloque o espacio › descargar el Excel) y Reportes › Mantenimientos no programados (consultar, detalle y descarga). Depende de: registros y correctivo de O2. Con datos vacíos los reportes avisan y no descargan. Agrupa: histórico + reporte de equipos + reporte de no programados.",
+          "Ruta esperada: Actividades › Histórico (periodo actual, bloque; filtros al instante; desplegar una visita), Reportes › Equipos (bloque o espacio › descargar el Excel) y Reportes › Mantenimientos no programados (consultar, detalle y descarga; los Excel traen Estado, fecha de cierre, trabajo realizado y evidencia al final). Depende de: registros y correctivo de O2. Con datos vacíos los reportes avisan y no descargan. Agrupa: histórico + reporte de equipos + reporte de no programados.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 16,
         completionMilestone:
@@ -303,7 +303,7 @@ const BLOCKS: SeedProject[] = [
         title: "Empezar la jornada y registrar un mantenimiento sin novedades",
         userGoal: "Atender primero lo más urgente y dejar constancia de lo hecho.",
         description:
-          "Ruta esperada: Actividades › Registro de actividades (Mi trabajo: vencidos, por hacer y al día › equipo › marcar lo hecho o «Marcar todo como hecho» › «No aplica» en una actividad › guardar). Depende de: espacios asignados (O1) y planes (E5). Si no ve equipos es un hallazgo de alcance, no un error del participante. Agrupa: ver lo urgente + registro sin novedades.",
+          "Ruta esperada: Actividades › Registro de actividades (Mi trabajo: vencidos, por hacer y al día › equipo › marcar lo hecho o «Marcar todo como hecho» › «No aplica» en una actividad › guardar). Depende de: espacios asignados (O1) y planes (E5). Si no ve equipos es un hallazgo de alcance, no un error del participante. Ventana de registro por frecuencia (mensual 7 días antes del vencimiento, semestral 15, anual 30): el facilitador comprueba que el equipo esté dentro de ella, o el laboratorista no podrá registrar y el escenario no sería evaluable. Agrupa: ver lo urgente + registro sin novedades.",
         startingPoint: "Sesión iniciada como Laboratorista, en la pantalla de inicio.",
         timeLimitMinutes: 14,
         completionMilestone:
@@ -328,7 +328,7 @@ const BLOCKS: SeedProject[] = [
         title: "Reportar un equipo dañado y revisar lo que registraste",
         userGoal: "Pedir la reparación de un equipo y poder contar con precisión lo registrado en el mes.",
         description:
-          "Ruta esperada: Actividades › Mantenimientos no programados › Nuevo y luego Actividades › Histórico (periodo actual; filtros al instante; desplegar una visita). Depende de: un equipo en sus espacios y de L2 y L3. Es el otro camino hacia un correctivo (distinto de L3). Agrupa: no programado + histórico.",
+          "Ruta esperada: Actividades › Mantenimientos no programados › Nuevo y luego Actividades › Histórico (periodo actual; filtros al instante; desplegar una visita). Depende de: un equipo en sus espacios y de L2 y L3. Es el otro camino hacia un correctivo (distinto de L3). El laboratorista también puede «Registrar trabajo» y cerrar un correctivo de sus espacios, pero no se pide en este escenario. Agrupa: no programado + histórico.",
         startingPoint: "Sesión iniciada como Laboratorista, en la pantalla de inicio.",
         timeLimitMinutes: 12,
         completionMilestone:
