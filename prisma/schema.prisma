@@ -57,6 +57,15 @@ enum TestEnvironment {
   VIRTUAL
 }
 
+/// Qué ve el participante en su pantalla (la que se comparte): nada, la bienvenida, un escenario, una pausa o el cierre.
+enum SessionPhase {
+  NOT_STARTED
+  WELCOME
+  SCENARIO
+  BETWEEN
+  FINISHED
+}
+
 /// Resultado de un escenario para un participante. Si no se completa, es un error crítico.
 enum TaskOutcome {
   COMPLETED
@@ -278,6 +287,12 @@ model TestPlan {
   participantInstructions String?
   dataToCollect           String?
 
+  // 4b. Pantalla del participante (la ventana que se comparte): bienvenida y cierre
+  welcomeEnabled Boolean @default(true)
+  welcomeTitle   String?
+  welcomeHtml    String?
+  closingMessage String?
+
   // 5. Aspectos éticos y legales
   consentText     String?
   legalReviewDone Boolean @default(false)
@@ -327,6 +342,8 @@ model Participant {
   consentSigned        Boolean      @default(false)
   recordingAuthorized  Boolean      @default(false)
   notes                String?
+  /// Enlace secreto de la pantalla del participante (/p/<token>). Se genera al abrirla por primera vez.
+  presentationToken    String?      @unique
   session              TestSession?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -344,7 +361,17 @@ model TestSession {
   notes               String?
   /// Preguntas que el facilitador hace al final para entender una conducta (no se hacen durante la prueba).
   finalQuestionsNotes String?
+  /// Lo que muestra la pantalla del participante; lo controla el facilitador.
+  phase               SessionPhase @default(NOT_STARTED)
+  currentScenarioId   String?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  /// Síntesis posterior: enlace de la grabación (Meet, Loom, Drive…) y notas sobre ella.
+  recordingUrl        String?
+  recordingNotes      String?
   runs                TaskRun[]
+  markers             SessionMarker[]
+  findings            SessionFinding[]
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 }
@@ -371,6 +398,41 @@ model TaskRun {
   updatedAt         DateTime     @updatedAt
 
   @@unique([sessionId, scenarioId])
+}
+
+/// Marca de tiempo sobre la grabación (p. ej. «duda al buscar el menú», minuto 03:12), opcionalmente de un escenario.
+model SessionMarker {
+  id            String       @id @default(cuid())
+  sessionId     String
+  session       TestSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scenarioId    String?
+  orderIndex    Int          @default(0)
+  offsetSeconds Int
+  label         String
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([sessionId, offsetSeconds])
+}
+
+/// Hallazgo curado de una sesión: qué se observó, la recomendación, la captura y el momento en la grabación.
+model SessionFinding {
+  id                     String      @id @default(cuid())
+  sessionId              String
+  session                TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scenarioId             String?
+  orderIndex             Int         @default(0)
+  title                  String
+  observation            String
+  recommendation         String?
+  recordingOffsetSeconds Int?
+  screenshotPath         String?
+  screenshotName         String?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+
+  @@index([sessionId, orderIndex])
 }
 
 model UsabilityIssue {

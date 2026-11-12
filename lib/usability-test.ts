@@ -230,12 +230,67 @@ export function buildScenarioMetrics(runs: RunMetricInput[], timeLimitMinutes: n
   };
 }
 
+// ─── Indicadores para decidir (informe ejecutivo) ──────────────────────────────────────────────────
+
+export type ExecutiveKpis = {
+  /** Escenarios resueltos por todos los participantes reales (ejecuciones registradas). */
+  runs: number;
+  /** Efectividad: % de ejecuciones completadas (incluye las logradas tras un error no crítico). */
+  effectiveness: number | null;
+  /** % completado sin errores, sin falso final y sin llegar al límite: la experiencia fluida. */
+  cleanSuccess: number | null;
+  /** Efectividad − éxito limpio: cuánto se logró a costa de tropiezos. */
+  recoveryGap: number | null;
+  /** Ejecuciones con error crítico (no completadas o con falso final). */
+  criticalRuns: number;
+  falseCompletions: number;
+  /** Mediana del tiempo en tarea de quienes completan (segundos). */
+  medianTime: number | null;
+};
+
+function percent(part: number, total: number): number | null {
+  return total ? Math.round((part / total) * 100) : null;
+}
+
+export function buildExecutiveKpis(runs: RunMetricInput[]): ExecutiveKpis {
+  const recorded = runs.filter((run) => run.outcome !== null);
+  const completed = recorded.filter((run) => run.outcome === "COMPLETED");
+  const clean = completed.filter((run) => !run.falseCompletion && !run.stoppedAtLimit && run.nonCriticalErrors === 0);
+  const effectiveness = percent(completed.length, recorded.length);
+  const cleanSuccess = percent(clean.length, recorded.length);
+  return {
+    runs: recorded.length,
+    effectiveness,
+    cleanSuccess,
+    recoveryGap: effectiveness !== null && cleanSuccess !== null ? effectiveness - cleanSuccess : null,
+    criticalRuns: recorded.filter(isCriticalRun).length,
+    falseCompletions: recorded.filter((run) => run.falseCompletion).length,
+    medianTime: median(
+      completed.map((run) => run.timeOnTaskSeconds).filter((value): value is number => typeof value === "number"),
+    ),
+  };
+}
+
 export function formatSeconds(seconds: number | null | undefined): string {
   if (seconds === null || seconds === undefined) return "—";
   const total = Math.round(seconds);
   const minutes = Math.floor(total / 60);
   const rest = total % 60;
   return `${minutes}:${String(rest).padStart(2, "0")}`;
+}
+
+/**
+ * Convierte «m:ss», «mm:ss» o «h:mm:ss» (o solo segundos) a segundos. Devuelve null si el texto no es un tiempo válido.
+ * Sirve para los marcadores sobre la grabación.
+ */
+export function parseTimecode(text: string): number | null {
+  const value = text.trim();
+  if (!value) return null;
+  if (/^\d+$/.test(value)) return Number(value);
+  const match = value.match(/^(?:(\d{1,2}):)?(\d{1,3}):([0-5]\d)$/);
+  if (!match) return null;
+  const hours = match[1] ? Number(match[1]) : 0;
+  return hours * 3600 + Number(match[2]) * 60 + Number(match[3]);
 }
 
 // ─── Completitud del plan (Tema 3: «Planteamiento del test», mínimo a documentar) ─────────────────

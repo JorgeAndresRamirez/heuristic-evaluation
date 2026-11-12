@@ -61,6 +61,15 @@ const USER_TYPES =
 
 const INSTRUCTIONS = DEFAULT_PARTICIPANT_INSTRUCTIONS.replace("[sistema]", "GOM");
 
+const WELCOME_HTML = `<ul>
+<li>Vamos a probar <strong>GOM</strong>, el sistema de gestión del mantenimiento de equipos de laboratorio. <strong>No te evaluamos a ti</strong>: si algo te resulta difícil, es un problema del sistema y justo eso queremos descubrir.</li>
+<li>Con tu autorización, <strong>se grabará la pantalla y la voz</strong> de esta sesión en Google Meet. La información es de uso exclusivo del equipo de SICAU y solo para GOM.</li>
+<li>Verás una situación a la vez. <strong>Léela en voz alta</strong> y actúa como lo harías en tu trabajo, con tus propios datos.</li>
+<li><strong>Piensa en voz alta</strong>: cuéntanos qué buscas, qué esperas que pase y qué no entiendes.</li>
+<li>No hay respuestas correctas ni incorrectas y puedes parar cuando quieras.</li>
+<li>Durante la prueba no podremos ayudarte ni explicarte el sistema; tus dudas, al final.</li>
+</ul>`;
+
 const DATA_NOTE =
   "Datos de partida (decisión del responsable, 2026-11-11): cada participante trabaja con sus propios datos reales de piloto (el bien, el equipo, las personas), para que la prueba sea realista. Los escenarios encadenados continúan con el mismo equipo y las mismas personas; el facilitador anota en el participante (campo notas) la placa, el tipo y las personas usados para retomarlos en la sesión siguiente. Antes de cada sesión el facilitador comprueba que el participante tiene lo necesario (por ejemplo, un bien de SEVEN de su laboratorio que aún no esté en GOM). Los datos y los correos son reales: lo guardado en el ambiente de pruebas permanece.";
 
@@ -456,6 +465,11 @@ async function main() {
           severityCriteria: DEFAULT_SEVERITY_CRITERIA,
           satisfactionScale: DEFAULT_SATISFACTION_SCALE,
           participantInstructions: INSTRUCTIONS,
+          // Pantalla del participante (la que se comparte en Meet)
+          welcomeEnabled: true,
+          welcomeTitle: "Antes de comenzar",
+          welcomeHtml: WELCOME_HTML,
+          closingMessage: "Gracias por tu tiempo. Lo que hiciste hoy nos ayuda a que GOM sea más fácil de usar.",
           dataToCollect:
             "Por escenario y participante: completado o no, tiempo en tarea, errores críticos y no críticos, pensamientos en voz alta, satisfacción de 1 a 10. Al final, preguntas para entender conductas puntuales. No se hacen encuestas.",
           // 1. Identificación (datos confirmados por el responsable, 2026-11-11)

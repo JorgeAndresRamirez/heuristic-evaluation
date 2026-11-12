@@ -226,6 +226,12 @@ export function ParticipantsManager({
                   >
                     {participant.recordedScenarios > 0 ? "Continuar sesión" : "Iniciar sesión"}
                   </Link>
+                  <Link
+                    href={`/projects/${projectId}/sessions/${participant.id}/synthesis`}
+                    className={cn(buttonVariants({ variant: "outline" }))}
+                  >
+                    Síntesis
+                  </Link>
                   <Button variant="destructive" size="sm" onClick={() => remove(participant.id)}>
                     Eliminar
                   </Button>
