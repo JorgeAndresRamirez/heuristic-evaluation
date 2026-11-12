@@ -126,6 +126,19 @@ const BLOCKS: SeedProject[] = [
         scenarioCard:
           "La oficina de control interno te pidió soporte de los mantenimientos que se hicieron durante el periodo académico actual: quién los realizó, cuándo y qué fallas se encontraron. Quieres entregarles hoy un archivo que puedan revisar con calma, sin que tengas que armarlo a mano.",
       },
+      {
+        code: "S5",
+        title: "Corregir un registro de mantenimiento guardado por error",
+        userGoal: "Que un registro equivocado deje de contar sin perder la evidencia de que existió.",
+        description:
+          "Ruta esperada: Actividades › Histórico › «Revertir registro» en la visita equivocada (motivo obligatorio de 10 a 500 caracteres). Solo Admin y SoporteAdmin (ADR-011 de GOM). Depende de: una visita registrada en el ambiente de pruebas que NO haya abierto un correctivo (si la abrió, el sistema pide resolverlo antes y no la revierte). Efecto: la visita queda marcada como revertida (quién, cuándo y por qué), deja de contar para la urgencia del equipo y reabre los hallazgos que había cerrado. La reversa no tiene deshacer: usar una visita de prueba. Requiere una versión de GOM posterior a 70095fc con la migración AgregarReversaAlRegistroDeActividades aplicada en el ambiente.",
+        startingPoint: "Sesión iniciada como SoporteAdmin, en la pantalla de inicio.",
+        timeLimitMinutes: 8,
+        completionMilestone:
+          "El sistema confirma que el registro fue revertido y que el equipo volvió a su estado anterior, y la visita deja de aparecer como un registro vigente en el histórico.",
+        scenarioCard:
+          "Un laboratorista te avisa, preocupado, que ayer dejó registrado el mantenimiento de un equipo que en realidad no era el que había revisado, y ahora el sistema lo muestra como si estuviera al día. No quieres borrar nada ni perder la constancia de lo ocurrido, pero ese registro no debe seguir contando. Decides corregirlo hoy, dejando claro por qué.",
+      },
     ],
   },
   // ───────────────────────────────────────────────── TecnicoOperativo · Preparar
@@ -371,7 +384,7 @@ function buildSingleProject(): SeedProject {
   return {
     name: TEST_NAME,
     description:
-      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S4: alta de personal, asignación de espacios, soporte de cuentas y reporte de auditoría), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
+      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S5: alta de personal, asignación de espacios, soporte de cuentas, reporte de auditoría y reversa de un registro), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
     profile: "SoporteAdmin, TecnicoOperativo y Laboratorista",
     profiles:
       "Tres perfiles, un bloque de escenarios para cada uno, aplicado a personas de ese perfil: SoporteAdmin (administra el sistema a nivel operativo), TecnicoOperativo (responsable técnico de espacios físicos) y Laboratorista (ejecuta y registra el mantenimiento). Cada participante hace solo los escenarios de su rol.",
@@ -380,7 +393,7 @@ function buildSingleProject(): SeedProject {
     context:
       "Desviación consciente del Máster, por decisión del responsable: una sola prueba con " +
       ordered.length +
-      " escenarios (el Máster recomienda no más de 6 por prueba y pruebas separadas por grupos distintos). Cada participante solo hace los de su rol, así que en la práctica ve de 4 a 9; cada escenario agrupa varias funciones relacionadas para acercarse a lo recomendado; el facilitador puede partirlos en sesiones o pausas si la fatiga lo exige. En las descripciones internas, los códigos S, E, O, A y L indican el bloque: S (SoporteAdmin), E, O, A (TecnicoOperativo) y L (Laboratorista). Orden de aplicación: S1–S4, E1–E5, O1–O2, A1–A2, L1–L4. Cada participante hace solo el bloque de su rol, completo en una sola sesión. Los límites de tiempo son estimaciones que se calibran con el piloto.",
+      " escenarios (el Máster recomienda no más de 6 por prueba y pruebas separadas por grupos distintos). Cada participante solo hace los de su rol, así que en la práctica ve de 4 a 9 (el SoporteAdmin 5); cada escenario agrupa varias funciones relacionadas para acercarse a lo recomendado; el facilitador puede partirlos en sesiones o pausas si la fatiga lo exige. En las descripciones internas, los códigos S, E, O, A y L indican el bloque: S (SoporteAdmin), E, O, A (TecnicoOperativo) y L (Laboratorista). Orden de aplicación: S1–S5, E1–E5, O1–O2, A1–A2, L1–L4. Cada participante hace solo el bloque de su rol, completo en una sola sesión. Los límites de tiempo son estimaciones que se calibran con el piloto.",
     scenarios: ordered,
   };
 }

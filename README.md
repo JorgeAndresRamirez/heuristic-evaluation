@@ -107,7 +107,7 @@ Descargas (PDF): informe de resultados, documento-guía, **tarjetas-escenario** 
 
 **Decisiones de diseño tomadas a propósito (del Máster):** no se muestra el tiempo límite al participante; no hay encuestas dentro del test (SUS/SEQ) —la satisfacción es una sola valoración numérica por escenario, tratada de forma cualitativa—; un piloto no cuenta en los resultados; el consentimiento queda como borrador hasta marcar la revisión legal.
 
-**Datos de GOM:** `npm run db:seed:gom` carga la ronda 1 de usabilidad de GOM como **una sola prueba por roles** con 17 escenarios (SoporteAdmin S1–S4, TecnicoOperativo E1–E5, O1–O2 y A1–A2, Laboratorista L1–L4) y el documento-guía diligenciado. Si el proyecto ya existe y no tiene participantes ni problemas, lo reemplaza; si ya tiene datos, no lo toca. Detalle, orden, supuestos y pendientes en [docs/RondaGOM.md](docs/RondaGOM.md).
+**Datos de GOM:** `npm run db:seed:gom` carga la ronda 1 de usabilidad de GOM como **una sola prueba por roles** con 18 escenarios (SoporteAdmin S1–S5, TecnicoOperativo E1–E5, O1–O2 y A1–A2, Laboratorista L1–L4) y el documento-guía diligenciado. Si el proyecto ya existe y no tiene participantes ni problemas, lo reemplaza; si ya tiene datos, no lo toca. Detalle, orden, supuestos y pendientes en [docs/RondaGOM.md](docs/RondaGOM.md).
 
 ---
 
