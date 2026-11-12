@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { HEURISTIC_SOURCE_LABELS } from "@/lib/constants";
+import { useNotify } from "@/components/ui/dialogs";
 
 type HeuristicSetItem = {
   id: string;
@@ -24,6 +25,7 @@ type HeuristicSetItem = {
 
 export function HeuristicsManager({ initialSets }: { initialSets: HeuristicSetItem[] }) {
   const router = useRouter();
+  const notify = useNotify();
   const [sets, setSets] = useState(initialSets);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -60,7 +62,7 @@ export function HeuristicsManager({ initialSets }: { initialSets: HeuristicSetIt
   async function deleteSet(id: string) {
     const response = await fetch(`/api/heuristics/${id}`, { method: "DELETE" });
     if (!response.ok) {
-      alert("No se pudo eliminar el set");
+      notify("error", "No se pudo eliminar el set");
       return;
     }
     setSets((current) => current.filter((set) => set.id !== id));

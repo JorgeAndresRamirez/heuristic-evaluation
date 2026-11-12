@@ -14,6 +14,7 @@ import { Input, Label, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PROJECT_KIND_LABELS, PROJECT_STATUS_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/dialogs";
 
 type ProjectItem = {
   id: string;
@@ -36,6 +37,7 @@ export function ProjectsDashboard({
   configs: ConfigItem[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [projects, setProjects] = useState(initialProjects);
   // `router.refresh()` entrega nuevas `initialProjects`, pero el estado inicial no se actualiza solo: sin esto la copia
   // creada no aparecía y parecía que el botón no hacía nada.
@@ -83,10 +85,27 @@ export function ProjectsDashboard({
     router.push(`/projects/${project.id}`);
   }
 
-  async function deleteProject(id: string) {
-    if (!confirm("¿Eliminar este proyecto y todos sus hallazgos?")) return;
-    await fetch(`/api/projects/${id}`, { method: "DELETE" });
-    setProjects((current) => current.filter((p) => p.id !== id));
+  async function deleteProject(id: string, name: string) {
+    if (working.current) return;
+    const accepted = await confirm({
+      title: `¿Eliminar «${name}»?`,
+      message: "Se borran también sus participantes, sesiones, hallazgos y evidencias. No se puede deshacer.",
+      confirmLabel: "Eliminar proyecto",
+      destructive: true,
+    });
+    if (!accepted) return;
+    working.current = true;
+    setNotice(null);
+    try {
+      const response = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("delete");
+      setProjects((current) => current.filter((p) => p.id !== id));
+      setNotice({ tone: "ok", text: `Proyecto eliminado: «${name}».` });
+    } catch {
+      setNotice({ tone: "error", text: "No se pudo eliminar el proyecto." });
+    } finally {
+      working.current = false;
+    }
   }
 
   async function cloneProject(id: string) {
@@ -286,7 +305,7 @@ export function ProjectsDashboard({
                 <Button variant="outline" onClick={() => exportProject(project.id, project.name)} disabled={busy !== null}>
                   {busy?.id === project.id && busy.action === "export" ? "Exportando…" : "Exportar"}
                 </Button>
-                <Button variant="destructive" onClick={() => deleteProject(project.id)}>
+                <Button variant="destructive" onClick={() => deleteProject(project.id, project.name)}>
                   Eliminar
                 </Button>
               </div>

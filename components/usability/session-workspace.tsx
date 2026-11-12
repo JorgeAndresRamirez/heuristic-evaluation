@@ -16,6 +16,7 @@ import { Input, Select, Textarea } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { formatSeconds } from "@/lib/usability-test";
 import { cn } from "@/lib/utils";
+import { useNotify } from "@/components/ui/dialogs";
 
 export type RunState = {
   outcome: "COMPLETED" | "NOT_COMPLETED" | null;
@@ -326,6 +327,7 @@ export function SessionWorkspace({
   screen: ScreenState;
   welcomeEnabled: boolean;
 }) {
+  const notify = useNotify();
   const router = useRouter();
   const [meta, setMeta] = useState(session);
   const [screen, setScreen] = useState<ScreenState>(initialScreen);
@@ -461,7 +463,7 @@ export function SessionWorkspace({
           onShow={(scenarioId) => {
             if (!screen.token) {
               // Aún no se abrió la pantalla: se prepara el enlace y el facilitador la abre desde el panel.
-              alert("Primero abre la pantalla del participante desde el panel de arriba.");
+              notify("info", "Primero abre la pantalla del participante desde el panel de arriba.");
               return;
             }
             sendScreen({ action: "scenario", scenarioId });

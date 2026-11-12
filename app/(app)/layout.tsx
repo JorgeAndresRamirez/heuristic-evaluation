@@ -4,7 +4,12 @@
  */
 
 import { AppShell } from "@/components/layout/app-shell";
+import { DialogsProvider } from "@/components/ui/dialogs";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <DialogsProvider>
+      <AppShell>{children}</AppShell>
+    </DialogsProvider>
+  );
 }

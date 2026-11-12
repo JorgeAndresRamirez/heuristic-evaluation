@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
 import { analyzeScenarioCard, MAX_RECOMMENDED_SCENARIOS, scenarioCountGuidanceByRole } from "@/lib/usability-test";
+import { useConfirm, useNotify } from "@/components/ui/dialogs";
 
 export type ScenarioItem = {
   id: string;
@@ -42,6 +43,8 @@ const emptyDraft = (code: string): Draft => ({
 
 export function ScenariosManager({ projectId, scenarios }: { projectId: string; scenarios: ScenarioItem[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const notify = useNotify();
   const [draft, setDraft] = useState<Draft>(emptyDraft(`E${scenarios.length + 1}`));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,8 +89,9 @@ export function ScenariosManager({ projectId, scenarios }: { projectId: string; 
   }
 
   async function remove(id: string) {
-    if (!confirm("¿Eliminar este escenario y los resultados registrados en él?")) return;
-    await fetch(`/api/scenarios/${id}`, { method: "DELETE" });
+    if (!(await confirm({ title: "¿Eliminar este escenario?", message: "Se borran también los resultados registrados en él.", confirmLabel: "Eliminar", destructive: true }))) return;
+    const response = await fetch(`/api/scenarios/${id}`, { method: "DELETE" });
+    notify(response.ok ? "ok" : "error", response.ok ? "Escenario eliminado." : "No se pudo eliminar el escenario.");
     router.refresh();
   }
 

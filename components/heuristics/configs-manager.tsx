@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
+import { useNotify } from "@/components/ui/dialogs";
 
 type ConfigItem = {
   id: string;
@@ -30,6 +31,7 @@ export function ConfigsManager({
   sets: SetOption[];
 }) {
   const router = useRouter();
+  const notify = useNotify();
   const [configs, setConfigs] = useState(initialConfigs);
   const [form, setForm] = useState({ name: "", description: "", heuristicSetId: sets[0]?.id ?? "" });
 
@@ -64,7 +66,7 @@ export function ConfigsManager({
   async function deleteConfig(id: string) {
     const response = await fetch(`/api/configs/${id}`, { method: "DELETE" });
     if (!response.ok) {
-      alert("No se puede eliminar: hay proyectos asociados");
+      notify("error", "No se puede eliminar: hay proyectos asociados");
       return;
     }
     setConfigs((current) => current.filter((config) => config.id !== id));
