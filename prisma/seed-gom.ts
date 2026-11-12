@@ -85,32 +85,19 @@ const BLOCKS: SeedProject[] = [
     scenarios: [
       {
         code: "S1",
-        title: "Dar acceso al técnico responsable y a su laboratorista",
-        userGoal: "Que quien configura el mantenimiento y quien lo ejecuta puedan entrar a GOM, cada uno con lo que le corresponde.",
+        title: "Dar acceso al técnico responsable, con sus espacios, y al laboratorista",
+        userGoal: "Que quien configura el mantenimiento y quien lo ejecuta puedan entrar a GOM, y que el técnico encuentre desde el primer día los equipos de sus laboratorios.",
         description:
-          "Ruta esperada: Seguridad › Usuarios › Nuevo, dos veces (persona —al elegirla se completa el correo institucional, que sigue editable—, contraseña temporal con el «ojo» para verla; rol TecnicoOperativo y rol Laboratorista; consultar Roles para entender qué permite cada uno). Depende de: las personas existen en SICAU. Deja listo: las cuentas que usan los escenarios E, O y L. Se envían correos de confirmación reales. Agrupa: alta de técnico + alta de laboratorista.",
+          "Ruta esperada: Seguridad › Usuarios › Nuevo, dos veces. Persona (al elegirla se completa el correo institucional, que sigue editable), contraseña temporal con el «ojo» para verla y rol. Con TecnicoOperativo o Laboratorista aparece la sección «Espacios físicos» (bloque y espacios) en la misma ficha: un solo botón guarda el usuario y después sus espacios; la lista marca «Sin espacios» a quien tiene un rol que los pide y ninguno activo. Desde 2026-11-12 (versión dac11fa) la asignación de espacios ya no es un paso aparte. Los espacios del laboratorista pueden asignarse aquí o después por su técnico (O1): no se le indica cuál. Consultar Roles para entender qué permite cada uno. Depende de: las personas existen en SICAU. Deja listo: las cuentas y el alcance del técnico, que usan los escenarios E, O y L. Se envían correos de confirmación reales. Fuera de este escenario y anotado: «Detalles del usuario» todavía no muestra los espacios asignados.",
         startingPoint: "Sesión iniciada como SoporteAdmin, en la pantalla de inicio.",
-        timeLimitMinutes: 14,
+        timeLimitMinutes: 20,
         completionMilestone:
-          "Los dos usuarios quedan guardados (uno con el rol TecnicoOperativo y otro con el rol Laboratorista), aparecen en el listado de usuarios y el sistema confirma el envío del correo de activación de cada uno.",
+          "Los dos usuarios quedan guardados (uno con el rol TecnicoOperativo y otro con el rol Laboratorista), el técnico con su bloque y sus espacios asignados, la lista de usuarios no lo marca como «Sin espacios» y el sistema confirma el envío del correo de activación de cada uno.",
         scenarioCard:
-          "Esta semana se incorpora a tu institución una persona que será la responsable técnica de varios laboratorios, y con ella trabajará quien se encarga de hacer los mantenimientos en esos laboratorios. La responsable técnica necesita configurar los equipos, planear su mantenimiento y hacerles seguimiento. Quien hace los mantenimientos solo debe poder dejar registrado su trabajo, nada más. Tú eres quien les da acceso al sistema. Decides dejar listas las dos cuentas hoy, para que puedan activarlas y empezar a trabajar.",
+          "Esta semana se incorpora a tu institución una persona que será la responsable técnica de varios laboratorios, y con ella trabajará quien se encarga de hacer los mantenimientos en esos laboratorios. La responsable técnica necesita configurar los equipos, planear su mantenimiento y hacerles seguimiento, pero solo en los laboratorios que le correspondan. Quien hace los mantenimientos solo debe poder dejar registrado su trabajo, nada más. Tú sabes en qué bloque está la responsable y qué espacios le corresponden. Decides dejar listas las dos cuentas hoy, de modo que cuando las activen puedan empezar a trabajar sin esperar nada más.",
       },
       {
         code: "S2",
-        title: "Asignar al técnico los espacios de los que es responsable",
-        userGoal: "Que el técnico encuentre, al entrar, los equipos de los laboratorios que le corresponden.",
-        description:
-          "Ruta esperada: Personal › Asignación (persona, bloque y espacios físicos). Depende de: S1. Deja listo: el alcance del técnico, necesario para todos sus escenarios. Según el ADR-007 es el SoporteAdmin quien asigna espacios al técnico.",
-        startingPoint: "Sesión iniciada como SoporteAdmin, en la pantalla de inicio.",
-        timeLimitMinutes: 8,
-        completionMilestone:
-          "La persona queda asignada al bloque y a los espacios correctos y aparece en el listado de personal asignado.",
-        scenarioCard:
-          "El técnico recién incorporado ya tiene cuenta, pero todavía no puede ver ningún equipo: el sistema aún no sabe de cuáles laboratorios es responsable. Tú sabes en qué bloque está y qué espacios le corresponden. Decides dejar registrado a cuáles queda asignado, para que cuando entre encuentre los equipos que debe atender.",
-      },
-      {
-        code: "S3",
         title: "Resolver problemas de acceso y cambios de cargo",
         userGoal: "Que una persona pueda activar su cuenta y que su acceso refleje su cargo actual, sin crearle otra cuenta.",
         description:
@@ -123,7 +110,7 @@ const BLOCKS: SeedProject[] = [
           "Hoy te llegan dos casos. El nuevo técnico te escribe preocupado: pasaron horas y no le llegó el correo para activar su cuenta, así que no puede entrar. Además, una persona de tu equipo, que solo registraba mantenimientos, asume desde hoy la responsabilidad técnica de otro bloque y su acceso debe reflejar su nuevo cargo. Quieres resolver ambos casos sin crear cuentas nuevas ni pedirle a nadie que se registre otra vez.",
       },
       {
-        code: "S4",
+        code: "S3",
         title: "Reunir la evidencia de los mantenimientos para una auditoría",
         userGoal: "Entregar a control interno un archivo con lo que se hizo, quién lo hizo y qué se encontró.",
         description:
@@ -136,11 +123,11 @@ const BLOCKS: SeedProject[] = [
           "La oficina de control interno te pidió soporte de los mantenimientos que se hicieron durante el periodo académico actual: quién los realizó, cuándo y qué fallas se encontraron. Quieres entregarles hoy un archivo que puedan revisar con calma, sin que tengas que armarlo a mano.",
       },
       {
-        code: "S5",
+        code: "S4",
         title: "Corregir un registro de mantenimiento guardado por error",
         userGoal: "Que un registro equivocado deje de contar sin perder la evidencia de que existió.",
         description:
-          "Ruta esperada: Actividades › Histórico › «Revertir registro» en la visita equivocada (motivo obligatorio de 10 a 500 caracteres). Solo Admin y SoporteAdmin (ADR-011 de GOM). Depende de: una visita registrada en el ambiente de pruebas que NO haya abierto un correctivo (si la abrió, el sistema pide resolverlo antes y no la revierte). Efecto: la visita queda marcada como revertida (quién, cuándo y por qué), deja de contar para la urgencia del equipo y reabre los hallazgos que había cerrado. La reversa no tiene deshacer: usar una visita de prueba. Requiere una versión de GOM posterior a 70095fc con la migración AgregarReversaAlRegistroDeActividades aplicada en el ambiente.",
+          "Ruta esperada: Actividades › Histórico › «Revertir registro» en la visita equivocada (motivo obligatorio de 10 a 500 caracteres). Solo Admin y SoporteAdmin (ADR-011 de GOM). Depende de: una visita registrada en el ambiente de pruebas que NO haya abierto un correctivo (si la abrió, el sistema pide resolverlo antes y no la revierte). Efecto: la visita queda marcada como revertida (quién, cuándo y por qué), deja de contar para la urgencia del equipo y reabre los hallazgos que había cerrado. La reversa no tiene deshacer: usar una visita de prueba. Disponible en el ambiente de pruebas desde la versión dac11fa (2026-11-12), con la migración AgregarReversaAlRegistroDeActividades aplicada.",
         startingPoint: "Sesión iniciada como SoporteAdmin, en la pantalla de inicio.",
         timeLimitMinutes: 8,
         completionMilestone:
@@ -164,7 +151,7 @@ const BLOCKS: SeedProject[] = [
         title: "Dejar un bien de SEVEN como equipo de GOM",
         userGoal: "Poder dar mantenimiento a un bien que hoy solo existe en el inventario institucional.",
         description:
-          "Ruta esperada: Inventario › Bienes de SEVEN (filtrar, «Asignar como equipo» y su tipo de equipo para mantenimiento; si el tipo no existe, se crea desde ese mismo paso; «Editar» reabre el tipo y «Cambió en SEVEN» ofrece «Revisar cambios»). Tras crear el tipo, el aviso indica el orden: calificar la frecuencia y luego configurar el checklist. Depende de: S1 y S2 y de un bien de SEVEN que aún no sea equipo. Deja listo: el equipo con su tipo, que usan E2 a E5. Riesgo conocido (L-03): el tipo se presenta como paso opcional.",
+          "Ruta esperada: Inventario › Bienes de SEVEN (filtrar, «Asignar como equipo» y su tipo de equipo para mantenimiento; si el tipo no existe, se crea desde ese mismo paso; «Editar» reabre el tipo y «Cambió en SEVEN» ofrece «Revisar cambios»). Tras crear el tipo, el aviso indica el orden: calificar la frecuencia y luego configurar el checklist. Depende de: S1 y de un bien de SEVEN que aún no sea equipo. Deja listo: el equipo con su tipo, que usan E2 a E5. Riesgo conocido (L-03): el tipo se presenta como paso opcional.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 10,
         completionMilestone:
@@ -240,7 +227,7 @@ const BLOCKS: SeedProject[] = [
         title: "Organizar al laboratorista y programar el mantenimiento",
         userGoal: "Que el laboratorista vea sus equipos y que el mantenimiento tenga fechas y un grupo a cargo.",
         description:
-          "Ruta esperada: Personal › Asignación (el técnico asigna a su laboratorista espacios de los suyos; no crea cuentas) y Mantenimiento › Programación de planes y/o Brigadas (crear o elegir una brigada y asociarle el plan). Depende de: S1 y S2 y plan del equipo (E5). Es la parte menos obvia del flujo (pantallas poco enlazadas). Deja listo: el alcance del laboratorista para L2 a L4. Agrupa: asignación del laboratorista + programación y brigada.",
+          "Ruta esperada: Personal › Asignación (el técnico asigna a su laboratorista espacios de los suyos; no crea cuentas) y Mantenimiento › Programación de planes y/o Brigadas (crear o elegir una brigada y asociarle el plan). Depende de: S1 (cuenta y espacios) y plan del equipo (E5). Si en S1 ya se le asignaron espacios al laboratorista, el técnico solo los revisa y ajusta. Es la parte menos obvia del flujo (pantallas poco enlazadas). Deja listo: el alcance del laboratorista para L2 a L4. Agrupa: asignación del laboratorista + programación y brigada.",
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 16,
         completionMilestone:
@@ -257,7 +244,7 @@ const BLOCKS: SeedProject[] = [
         startingPoint: "Sesión iniciada como TecnicoOperativo, en la pantalla de inicio.",
         timeLimitMinutes: 20,
         completionMilestone:
-          "El registro del equipo queda guardado, con una actividad como «No aplica», y el mantenimiento no programado queda guardado, con el trabajo realizado registrado, y aparece como Cerrado en el listado.",
+          "El registro del equipo queda guardado, con una actividad como «No aplica», y el mantenimiento no programado queda guardado, con el trabajo realizado registrado, y aparece como Cerrado en el listado; el registro del equipo muestra el sello de «Registro guardado».",
         scenarioCard:
           "Hoy hiciste el mantenimiento del equipo que preparaste. Todo estuvo en orden, salvo una actividad de la lista que no aplica a este equipo porque no tiene ese componente. Quieres dejar constancia de lo que hiciste. Al terminar, descubres que otro equipo de tu laboratorio dejó de funcionar y que no estaba programado para ninguna revisión: necesita que se repare y que quede constancia de lo ocurrido. Ese mismo día lo reparas y quieres que quede constancia de lo que se hizo y de su evidencia. Decides dejar todo en el sistema.",
       },
@@ -325,11 +312,11 @@ const BLOCKS: SeedProject[] = [
         title: "Empezar la jornada y registrar un mantenimiento sin novedades",
         userGoal: "Atender primero lo más urgente y dejar constancia de lo hecho.",
         description:
-          "Ruta esperada: Actividades › Registro de actividades (Mi trabajo: vencidos, por hacer y al día › equipo › marcar lo hecho o «Marcar todo como hecho» › «No aplica» en una actividad › guardar). Depende de: espacios asignados (O1) y planes (E5). Si no ve equipos es un hallazgo de alcance, no un error del participante. Ventana de registro por frecuencia (mensual 7 días antes del vencimiento, semestral 15, anual 30): el facilitador comprueba que el equipo esté dentro de ella, o el laboratorista no podrá registrar y el escenario no sería evaluable. Agrupa: ver lo urgente + registro sin novedades.",
+          "Ruta esperada: Inicio «Mi día» (resume lo pendiente de su rol: vencidos, por hacer, correctivos abiertos y lo más urgente, con el botón «Registrar actividades») o Actividades › Registro de actividades (Mi trabajo: vencidos, por hacer y al día › equipo › marcar lo hecho o «Marcar todo como hecho» › «No aplica» en una actividad › guardar). Depende de: espacios asignados (O1) y planes (E5). Si no ve equipos es un hallazgo de alcance, no un error del participante. Ventana de registro por frecuencia (mensual 7 días antes del vencimiento, semestral 15, anual 30): el facilitador comprueba que el equipo esté dentro de ella, o el laboratorista no podrá registrar y el escenario no sería evaluable. Agrupa: ver lo urgente + registro sin novedades.",
         startingPoint: "Sesión iniciada como Laboratorista, en la pantalla de inicio.",
         timeLimitMinutes: 14,
         completionMilestone:
-          "El participante identifica el equipo con el mantenimiento más urgente, lo registra con una actividad como «No aplica» y aparece la confirmación del guardado.",
+          "El participante identifica el equipo con el mantenimiento más urgente, lo registra con una actividad como «No aplica» y el sistema muestra el sello de «Registro guardado».",
         scenarioCard:
           "Empiezas tu jornada en el laboratorio. Sabes que tienes mantenimientos pendientes y que algunos ya van atrasados, y no quieres que se te venzan los más urgentes. Decides revisar qué equipos te tocan y empezar por el más urgente. Al terminar su mantenimiento, todo estuvo en orden, salvo una actividad de la lista que no aplica porque el equipo no tiene ese componente. Quieres dejar constancia de lo que hiciste para que quede en el sistema.",
       },
@@ -393,7 +380,7 @@ function buildSingleProject(): SeedProject {
   return {
     name: TEST_NAME,
     description:
-      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S5: alta de personal, asignación de espacios, soporte de cuentas, reporte de auditoría y reversa de un registro), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
+      "Una sola prueba de usabilidad con los escenarios de los tres roles que usan GOM, en el orden real de trabajo: SoporteAdmin (S1–S4: alta de personal con sus espacios, soporte de cuentas, reporte de auditoría y reversa de un registro), TecnicoOperativo (E1–E5 preparar un equipo, con ficha técnica y criterios de frecuencia; O1–O2 planear y operar; A1–A2 seguimiento y análisis), Laboratorista (L1–L4: su trabajo diario). Alcance según la matriz de roles aprobada de GOM y el ADR-007. Fuera de alcance por ser solo del Admin: Configuraciones, Soporte, Periodos académicos y crear o editar roles.",
     profile: "SoporteAdmin, TecnicoOperativo y Laboratorista",
     profiles:
       "Tres perfiles, un bloque de escenarios para cada uno, aplicado a personas de ese perfil: SoporteAdmin (administra el sistema a nivel operativo), TecnicoOperativo (responsable técnico de espacios físicos) y Laboratorista (ejecuta y registra el mantenimiento). Cada participante hace solo los escenarios de su rol.",
@@ -402,7 +389,7 @@ function buildSingleProject(): SeedProject {
     context:
       "Desviación consciente del Máster, por decisión del responsable: una sola prueba con " +
       ordered.length +
-      " escenarios (el Máster recomienda no más de 6 por prueba y pruebas separadas por grupos distintos). Cada participante solo hace los de su rol, así que en la práctica ve de 4 a 9 (el SoporteAdmin 5); cada escenario agrupa varias funciones relacionadas para acercarse a lo recomendado; el facilitador puede partirlos en sesiones o pausas si la fatiga lo exige. En las descripciones internas, los códigos S, E, O, A y L indican el bloque: S (SoporteAdmin), E, O, A (TecnicoOperativo) y L (Laboratorista). Orden de aplicación: S1–S5, E1–E5, O1–O2, A1–A2, L1–L4. Cada participante hace solo el bloque de su rol, completo en una sola sesión. Los límites de tiempo son estimaciones que se calibran con el piloto.",
+      " escenarios (el Máster recomienda no más de 6 por prueba y pruebas separadas por grupos distintos). Cada participante solo hace los de su rol, así que en la práctica ve de 4 a 9 (el SoporteAdmin 4); cada escenario agrupa varias funciones relacionadas para acercarse a lo recomendado; el facilitador puede partirlos en sesiones o pausas si la fatiga lo exige. En las descripciones internas, los códigos S, E, O, A y L indican el bloque: S (SoporteAdmin), E, O, A (TecnicoOperativo) y L (Laboratorista). Orden de aplicación: S1–S4, E1–E5, O1–O2, A1–A2, L1–L4. Cada participante hace solo el bloque de su rol, completo en una sola sesión. Los límites de tiempo son estimaciones que se calibran con el piloto.",
     scenarios: ordered,
   };
 }
