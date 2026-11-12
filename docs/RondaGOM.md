@@ -38,10 +38,13 @@ Ambiente de pruebas con la versión `70095fc` (2026-11-11): incluye el cierre de
 
 ## Cómo hacer una sesión con un participante real
 
-1. Participantes → agregar (código, rol de la lista, elegibilidad, consentimiento, grabación). Marcar «Es el piloto» solo en el ensayo.
-2. Informe → descargar la hoja del observador y las tarjetas del rol.
-3. Participantes → «Iniciar sesión»: facilitador y fecha; por cada escenario, leer la tarjeta, iniciar el cronómetro, marcar el resultado y guardar.
-4. Preguntas finales al terminar; después registrar problemas (principio, gravedad, recomendación) y descargar el informe.
+1. Pantalla del participante → revisar la bienvenida y el cierre (ya vienen escritos para GOM).
+2. Participantes → agregar (código, rol de la lista, elegibilidad, consentimiento, grabación). Marcar «Es el piloto» solo en el ensayo.
+3. Informe → descargar la hoja del observador del rol (para el segundo observador).
+4. Participantes → «Iniciar sesión». En la videollamada de Meet, **compartir solo la pestaña de la pantalla del participante**: se abre con «Abrir la pantalla del participante» y es la que muestra la bienvenida, cada situación y el cierre. La ventana del facilitador (cronómetro, notas) no se comparte.
+5. Desde la ventana del facilitador: «Mostrar la bienvenida» → por cada escenario, «Iniciar» (muestra la tarjeta al participante y arranca el cronómetro), marcar el resultado y «Guardar escenario» (el participante pasa a la pausa) → al final «Finalizar sesión» (muestra el cierre). Con «Marcar momento» se anotan instantes de la grabación.
+6. Preguntas finales al terminar. Después, **Síntesis**: enlace de la grabación de Meet, marcadores y hallazgos con captura; y en Problemas, lo consolidado con gravedad y recomendación.
+7. Informe: resumen para decidir, informe ejecutivo en PDF y hallazgos de la sesión en PDF.
 
 ## Si hay que cambiar algo
 

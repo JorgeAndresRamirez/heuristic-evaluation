@@ -48,6 +48,10 @@ Este documento dice **de dónde sale cada decisión** del módulo y qué hace la
 | Consentimiento informado, derechos de imagen, protección de datos y conservación; **no copiar y pegar** entre estudios; requiere **asesoría legal** | ICU-T1 §1.7 | Apartado ético y legal; casilla «Revisado por asesoría legal»; el PDF de consentimiento sale como **borrador** mientras no se marque |
 | Los resultados se evalúan con los registros de la prueba, no con la memoria | ICU-T3 | Todo se guarda por participante y escenario y se exporta a CSV |
 
+### Pantalla del participante
+
+La ventana que se comparte materializa en pantalla lo que el Máster pide hacer con tarjetas: el participante recibe **solo la tarjeta-escenario**, una a la vez, sin la palabra «tarea», sin el tiempo límite ni el hito (`lib/participant-screen.ts` lo garantiza y tiene pruebas). La bienvenida lleva las orientaciones de la apertura (se prueba el sistema y no a la persona, pensar en voz alta, sin respuestas correctas, dudas al final). El facilitador controla el ritmo, no el participante, para no perder el criterio de finalización.
+
 ## 3. Decisiones que se tomaron «en contra» de lo habitual
 
 1. **No hay SUS ni SEQ.** Son cuestionarios y el material del Máster es explícito: no se hacen encuestas en un test de usabilidad. Se conserva una única valoración de satisfacción por escenario, como pide el Tema 3.
