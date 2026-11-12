@@ -16,6 +16,7 @@ import { SEVERITY_COLORS, SEVERITY_LABELS, SEVERITY_OPTIONS, SCOPE_LABELS } from
 import { groupFindingsByPrinciple, suggestConsolidatedSeverity } from "@/lib/consolidation";
 import { findingsShareAnyPrinciple, getFindingPrincipleTitles } from "@/lib/finding-principles";
 import type { Severity } from "@/lib/generated/prisma";
+import { useConfirm, useNotify } from "@/components/ui/dialogs";
 
 type Evidence = {
   id: string;
@@ -71,6 +72,8 @@ export function ConsolidationPanel({
   initialConsolidated: Consolidated[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const notify = useNotify();
   const [findings, setFindings] = useState(initialFindings);
   const [consolidated, setConsolidated] = useState(initialConsolidated);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -140,7 +143,7 @@ export function ConsolidationPanel({
       }),
     });
     if (!response.ok) {
-      alert("No se pudo fusionar los hallazgos seleccionados");
+      notify("error", "No se pudo fusionar los hallazgos seleccionados");
       return;
     }
     const item = await response.json();
@@ -163,9 +166,12 @@ export function ConsolidationPanel({
   }
 
   async function deleteConsolidated(id: string, title: string) {
-    const confirmed = window.confirm(
-      `¿Desfusionar «${title}»? Los hallazgos volverán a la lista de pendientes.`,
-    );
+    const confirmed = await confirm({
+      title: `¿Desfusionar «${title}»?`,
+      message: "Los hallazgos volverán a la lista de pendientes.",
+      confirmLabel: "Desfusionar",
+      destructive: true,
+    });
     if (!confirmed) return;
 
     await fetch(`/api/consolidation/${id}`, { method: "DELETE" });

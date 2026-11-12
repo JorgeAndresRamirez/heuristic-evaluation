@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { formatSeconds, parseTimecode } from "@/lib/usability-test";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/dialogs";
 
 export type SynthesisMarker = { id: string; offsetSeconds: number; label: string; notes: string | null; scenarioId: string | null };
 export type SynthesisFinding = {
@@ -121,6 +122,7 @@ function MarkerRow({
   onChanged: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const confirm = useConfirm();
   const [time, setTime] = useState(formatSeconds(marker.offsetSeconds));
   const [label, setLabel] = useState(marker.label);
   const [notes, setNotes] = useState(marker.notes ?? "");
@@ -139,7 +141,7 @@ function MarkerRow({
   }
 
   async function remove() {
-    if (!confirm("¿Eliminar este marcador?")) return;
+    if (!(await confirm({ title: "¿Eliminar este marcador?", confirmLabel: "Eliminar", destructive: true }))) return;
     await api(`/api/markers/${marker.id}`, "DELETE");
     onChanged();
   }
@@ -271,6 +273,7 @@ function FindingCard({
   onChanged: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const confirm = useConfirm();
   const [title, setTitle] = useState(finding.title);
   const [observation, setObservation] = useState(finding.observation);
   const [recommendation, setRecommendation] = useState(finding.recommendation ?? "");
@@ -297,7 +300,7 @@ function FindingCard({
   }
 
   async function remove() {
-    if (!confirm("¿Eliminar este hallazgo y su captura?")) return;
+    if (!(await confirm({ title: "¿Eliminar este hallazgo?", message: "Se borra también su captura.", confirmLabel: "Eliminar", destructive: true }))) return;
     await api(`/api/session-findings/${finding.id}`, "DELETE");
     onChanged();
   }

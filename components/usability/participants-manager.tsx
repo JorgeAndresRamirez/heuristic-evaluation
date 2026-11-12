@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import type { Guidance } from "@/lib/usability-test";
 import { cn } from "@/lib/utils";
+import { useConfirm, useNotify } from "@/components/ui/dialogs";
 
 export type ParticipantItem = {
   id: string;
@@ -66,6 +67,8 @@ export function ParticipantsManager({
   plannedParticipants: number;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const notify = useNotify();
   const [draft, setDraft] = useState<Draft>(emptyDraft(`P${participants.length + 1}`));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -98,8 +101,9 @@ export function ParticipantsManager({
   }
 
   async function remove(id: string) {
-    if (!confirm("¿Eliminar este participante y todo lo registrado en su sesión?")) return;
-    await fetch(`/api/participants/${id}`, { method: "DELETE" });
+    if (!(await confirm({ title: "¿Eliminar este participante?", message: "Se borra todo lo registrado en su sesión: resultados, marcadores y hallazgos.", confirmLabel: "Eliminar", destructive: true }))) return;
+    const response = await fetch(`/api/participants/${id}`, { method: "DELETE" });
+    notify(response.ok ? "ok" : "error", response.ok ? "Participante eliminado." : "No se pudo eliminar el participante.");
     router.refresh();
   }
 

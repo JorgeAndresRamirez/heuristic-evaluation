@@ -21,6 +21,7 @@ import { SeverityBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTopCriticalFindings } from "@/lib/consolidation";
+import { useNotify } from "@/components/ui/dialogs";
 
 type Analytics = {
   bySeverity: Array<{ name: string; value: number }>;
@@ -52,6 +53,7 @@ export function ReportsDashboard({
   consolidatedFindings: Consolidated[];
   evaluators: Evaluator[];
 }) {
+  const notify = useNotify();
   const top10 = getTopCriticalFindings(
     consolidatedFindings.map((item) => ({
       id: item.id,
@@ -74,7 +76,7 @@ export function ReportsDashboard({
       }),
     });
     if (!response.ok) {
-      alert("No se pudo generar el reporte");
+      notify("error", "No se pudo generar el reporte");
       return;
     }
     const blob = await response.blob();

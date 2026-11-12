@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import type { SessionPhase } from "@/lib/participant-screen";
 import { formatSeconds } from "@/lib/usability-test";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/dialogs";
 
 export type ScreenState = {
   token: string | null;
@@ -54,6 +55,7 @@ export function ScreenControl({
   welcomeEnabled: boolean;
   send: (command: ScreenCommand) => Promise<ScreenState | null>;
 }) {
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [markerLabel, setMarkerLabel] = useState("");
@@ -145,8 +147,13 @@ export function ScreenControl({
             </Button>
             <Button
               variant={state.phase === "FINISHED" ? "default" : "outline"}
-              onClick={() => {
-                if (confirm("¿Mostrar el cierre al participante? Úsalo cuando termine el último escenario.")) run({ action: "finish" });
+              onClick={async () => {
+                const accepted = await confirm({
+                  title: "¿Mostrar el cierre al participante?",
+                  message: "Úsalo cuando termine el último escenario.",
+                  confirmLabel: "Finalizar sesión",
+                });
+                if (accepted) run({ action: "finish" });
               }}
               disabled={busy}
             >

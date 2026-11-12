@@ -17,6 +17,7 @@ import { SEVERITY_COLORS, SEVERITY_LABELS, SEVERITY_OPTIONS, SCOPE_LABELS } from
 import { getFindingPrincipleTitles } from "@/lib/finding-principles";
 import type { Severity } from "@/lib/generated/prisma";
 import { formatFileSize } from "@/lib/utils";
+import { useConfirm, useNotify } from "@/components/ui/dialogs";
 
 type Principle = { id: string; title: string; description: string };
 type Evidence = {
@@ -70,6 +71,8 @@ export function EvaluationWorkspace({
   initialFindings: Finding[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const notify = useNotify();
   const [findings, setFindings] = useState(initialFindings);
   const [editingFindingId, setEditingFindingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
@@ -189,7 +192,7 @@ export function EvaluationWorkspace({
           const formError = payload.error.formErrors?.[0];
           message = firstFieldError ?? formError ?? message;
         }
-        alert(message);
+        notify("error", message);
         return;
       }
 
@@ -221,7 +224,8 @@ export function EvaluationWorkspace({
       resetForm();
       router.refresh();
     } catch {
-      alert(
+      notify(
+        "error",
         editingFindingId
           ? "Error al actualizar el hallazgo o subir evidencias"
           : "Error al guardar el hallazgo o subir evidencias",
@@ -241,14 +245,14 @@ export function EvaluationWorkspace({
         ),
       );
     } catch {
-      alert("No se pudo subir el archivo");
+      notify("error", "No se pudo subir el archivo");
     } finally {
       setUploading(null);
     }
   }
 
   async function deleteFinding(id: string) {
-    if (!confirm("¿Eliminar este hallazgo?")) return;
+    if (!(await confirm({ title: "¿Eliminar este hallazgo?", message: "Se borran también sus evidencias.", confirmLabel: "Eliminar", destructive: true }))) return;
     await fetch(`/api/findings/${id}`, { method: "DELETE" });
     setFindings((current) => current.filter((finding) => finding.id !== id));
     if (editingFindingId === id) {

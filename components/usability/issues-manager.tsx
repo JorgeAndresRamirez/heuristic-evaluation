@@ -21,6 +21,7 @@ import {
 } from "@/lib/constants";
 import { suggestIssueSeverity, type IssueErrorType, type IssueSeverity, type Level } from "@/lib/usability-test";
 import { cn, formatFileSize } from "@/lib/utils";
+import { useConfirm, useNotify } from "@/components/ui/dialogs";
 
 export type IssueItem = {
   id: string;
@@ -103,6 +104,8 @@ export function IssuesManager({
   severityCriteria: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const notify = useNotify();
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -156,8 +159,9 @@ export function IssuesManager({
   }
 
   async function remove(id: string) {
-    if (!confirm("¿Eliminar este problema de usabilidad y sus evidencias?")) return;
-    await fetch(`/api/issues/${id}`, { method: "DELETE" });
+    if (!(await confirm({ title: "¿Eliminar este problema?", message: "Se borran también sus evidencias.", confirmLabel: "Eliminar", destructive: true }))) return;
+    const response = await fetch(`/api/issues/${id}`, { method: "DELETE" });
+    notify(response.ok ? "ok" : "error", response.ok ? "Problema eliminado." : "No se pudo eliminar el problema.");
     router.refresh();
   }
 
@@ -168,7 +172,7 @@ export function IssuesManager({
     const response = await fetch(`/api/issues/${issueId}/evidence`, { method: "POST", body: form });
     if (!response.ok) {
       const body = await response.json().catch(() => null);
-      alert(body?.error ?? "No se pudo adjuntar el archivo");
+      notify("error", typeof body?.error === "string" ? body.error : "No se pudo adjuntar el archivo");
       return;
     }
     router.refresh();
