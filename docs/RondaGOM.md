@@ -28,6 +28,14 @@ Google Meet con pantalla compartida y grabación; del 2026-11-11 al 2026-11-13; 
 
 **Pendiente:** revisión legal del consentimiento (la casilla «Revisado por asesoría legal» sigue sin marcar y el PDF sale como borrador).
 
+## Versión de GOM contra la que se redactaron los escenarios
+
+Ambiente de pruebas con la versión `70095fc` (2026-11-11): incluye el cierre del correctivo con «Registrar trabajo», la ventana de registro por frecuencia, «Crear actividad nueva» dentro del checklist, «Editar» y «Cambió en SEVEN» en Bienes de SEVEN y el correo institucional automático al crear un usuario. Las notas de esa entrega están en `docs/Pruebas/Entregas/2026-11-11_70095fc.md` del repositorio de GOM.
+
+**No incluido a propósito:** la «reversa» de un registro guardado por error (Admin y SoporteAdmin, desde el Histórico) se desarrolló después de esa versión y necesita la migración `AgregarReversaAlRegistroDeActividades`. Si se publica antes de las sesiones, conviene agregar un escenario S5 al bloque del SoporteAdmin («corregir un registro guardado por error, dejando el motivo»).
+
+**Ventana de registro:** un técnico o laboratorista solo puede registrar un mantenimiento dentro de la ventana de su frecuencia (mensual 7 días antes del vencimiento, semestral 15, anual 30). Antes de O2 y L2 el facilitador comprueba que el equipo esté dentro de ella.
+
 ## Cómo hacer una sesión con un participante real
 
 1. Participantes → agregar (código, rol de la lista, elegibilidad, consentimiento, grabación). Marcar «Es el piloto» solo en el ensayo.
